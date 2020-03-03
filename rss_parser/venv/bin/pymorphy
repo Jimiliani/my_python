@@ -1,0 +1,4 @@
+#!/home/dima/PycharmProjects/rss_parser/venv/bin/python
+import sys
+from pymorphy2 import cli
+sys.exit(cli.main())
