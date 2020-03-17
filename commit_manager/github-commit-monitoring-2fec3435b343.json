@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "github-commit-monitoring",
+  "private_key_id": "2fec3435b343182e0fef47ec0f3c29ce6555349a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDF5iixz4PafbjG\nCnyyN7b1tV/eaTpxy6mjIwCE7AKLaiWR14siipjohmYMdH0jcv0rFLrlKsynBO2C\nFt6GLFKTPZB8cUwCrTNKCqMUDpChxRnun3Z1PcsoVRA4hxG5Trgu5Tb4wsmJG28s\n97UHxba6jNeX6ZxskoWiYA/puzt/jFryLeDk6toauAZi/6UYaYDjDNcAMgmTXgdy\nI08v+j6STSNOuOlt/xhyzT5M+q4l1RZ/NrZnTDtMuzPUsDhXVUAKcsRw7DK04i5h\nLOuoQiiAgRgstWv7miqGxgIAfwqED6DD1U6RIw8EQ3gAByDBJSBSqf41sUiH7P39\nmUTbGaEjAgMBAAECggEASciiwozGsccvBXNyg3XfWqPZjxB3sGbJJCBQOL7Pwg/8\n2u/cma/IC+XUFW+3GmjseEv91KSM8faV4OtK4waScQBCpwsM1nCiD0iA/eDiTtYw\ncXX10geMf8ibSCAf3RG6/Q0L3lqtjldyr3bZgYDXPJ13YlXAswA8H8qmFDRxHf/b\nkRYkkpZoFAD7YNecFN4+g8OEX1W++xVZix+dDXD3F9v38yigVOUUG6ecY5k+WmF1\n5FLa9Vo2bksx7VRZwhN3AKM3Hpu/TLKEFNLbDE7KtTtJA53CMtqFY7uduv2MguV7\nU+rzbC/fIHyJUQqVTt3W1oIK+ddzXpjSF6h0hmrJlQKBgQD1RNDUriFZcQodf2+c\nwASvM5jnOAQ/ppSAGrmT+1qM9GHX5vDEiRjBu6lMzjHHuLpXUygrEmxv8tsHZRCi\nrEzITSMp4wARm0Buz3Q7UB/ShSrWAa9OXVltpRwsxsvuMNKKuf6pFQXdYxrPLPnz\n77a3k/dfU528iSD0RWgtTaDw3wKBgQDOjsS58OfjrTGYoxOumCnx4uUCFOExhJm/\nPeECjEzgypZNTj5MaGsZDk0qIwv+yKzh17xD+Hh4+G7g2tIurhhi/nW3YODB6tE8\n0sS7xeCE7c5VKfPPIO4ZF5FFHldfxXbNLWD0cB67DsRy+iRkxrY3X6reKlORzI7Q\nTko0E9tEPQKBgQClix8Qjb9AqUVUh5ED0a7XuhG37l0fwQV2OZOMSBjkDoaDvQJB\nBO/KwykQCBQdY5eSHTR9bd/254niQdqqkXT5tObI/MgtGgaxRCCFcB0qcGtrKpPy\nZptXoBuWNU+roxRYQhWadfARbzTHJOpINUG0QpCyrLNIb53ogXhBK6Y3LQKBgBel\n0rHy+algN7Bg4yz28L5nmo5Nc6ampq91VyBijZ6isuhwz8MRpUk+EOmFD6eAtAI7\nH6usc6Zt0svdYXjEp7gVp8ZxyemJh6DuBGX29ohhbWDkp6wL+hZXU2NVYO1u/vXo\nfxQdDfeebjE3oBkFgvD9++Lpd53WjHcer3Ic39qFAoGBANs3RygdDZbK90GzsCmg\nQLApEDA1hsTbCiWZo9HVTDAMbAzzB66TZnSVoinVkvtrjtbspAd/FlmKvgehEtl4\neS9w6On0H33tpAeWPLtx3cNLakj9zINYMsC4CHbjiDzmytx8eQtttZ4sU/mraxx2\nM7Z7y3IcEyCZQaAzsH19RAYI\n-----END PRIVATE KEY-----\n",
+  "client_email": "account@github-commit-monitoring.iam.gserviceaccount.com",
+  "client_id": "109483235461533766004",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/account%40github-commit-monitoring.iam.gserviceaccount.com"
+}
