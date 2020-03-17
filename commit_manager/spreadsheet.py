@@ -4,7 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 class Spreadsheet:
-    def __init__(self, date_):
+    def __init__(self, date_from, date_to):
         self.row = 1
         CREDENTIALS_FILE = 'github-commit-monitoring-2fec3435b343.json'
         credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE,
@@ -13,7 +13,7 @@ class Spreadsheet:
         httpAuth = credentials.authorize(httplib2.Http())
         self.service = apiclient.discovery.build('sheets', 'v4', http=httpAuth)
         self.spreadsheet = self.service.spreadsheets().create(body={
-            'properties': {'title': 'Список сделавших коммит до ' + date_, 'locale': 'ru_RU'},
+            'properties': {'title': 'Список сделавших коммит с' + date_from + ' по ' + date_to, 'locale': 'ru_RU'},
             'sheets': [{'properties': {'sheetType': 'GRID',
                                        'sheetId': 0,
                                        'title': 'Репозитории',
