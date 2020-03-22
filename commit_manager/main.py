@@ -4,7 +4,7 @@ from github_date import GithubDate
 
 
 def main():
-    g = Github(login_or_token="", password="")  # TODO
+    g = Github()
     file = open("students.txt", 'r')
     csv_file = open('commits.csv', 'w')
     print("Введите дату выдачи задания:")
@@ -16,12 +16,15 @@ def main():
     for line in file:
         line = line.strip('\n').split(' ')
         repo = g.get_repo(line[3])
+        row = []
+        total_commits = 0
         for commit in repo.get_commits():
             date = GithubDate(str(commit.commit.author.date))
             if deadline_date_from < date < deadline_date_to:
-                row = [line[0], line[1], line[2], 'https://github.com/' + line[3]]
-                csv_writer(csv_file, row)
-                break
+                total_commits += 1
+                row = [line[0], line[1], line[2], "Всего коммитов: " + str(total_commits),
+                       'https://github.com/' + line[3], str(commit.commit.message)]
+        csv_writer(csv_file, row)
     file.close()
     csv_file.close()
 
