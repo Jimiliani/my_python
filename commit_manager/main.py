@@ -3,16 +3,26 @@ from csv_worker import csv_writer
 from github_date import GithubDate
 
 
+def get_deadline_date_from():
+    print("Введите дату выдачи задания:")
+    deadline_date_from = input()
+    return GithubDate(deadline_date_from)
+
+
+def get_deadline_date_to():
+    print("Введите дату дедалйна:")
+    deadline_date_to = input()
+    return GithubDate(deadline_date_to)
+
+
 def main():
     g = Github()
     file = open("students.txt", 'r')
     csv_file = open('commits.csv', 'w')
-    print("Введите дату выдачи задания:")
-    deadline_date_from = input()
-    print("Введите дату дедалйна:")
-    deadline_date_to = input()
-    deadline_date_from = GithubDate(deadline_date_from)
-    deadline_date_to = GithubDate(deadline_date_to)
+
+    deadline_date_from = get_deadline_date_from()
+    deadline_date_to = get_deadline_date_to()
+
     for line in file:
         line = line.strip('\n').split(' ')
         repo = g.get_repo(line[3])
@@ -28,7 +38,9 @@ def main():
                     row = [line[0], line[1], line[2], "Всего коммитов: " + str(total_commits),
                            'https://github.com/' + line[3], str(commit.commit.message)]
         if row:
+            row[3] = total_commits
             csv_writer(csv_file, row)
+
     file.close()
     csv_file.close()
 
