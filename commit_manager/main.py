@@ -28,16 +28,36 @@ def main():
     file = open("students.txt", 'r')
     csv_file = open('commits.csv', 'w')
 
-    deadline_date_from = get_deadline_date_from()
-    deadline_date_to = get_deadline_date_to()
+    deadline_date_to, deadline_date_from = "", ""
+    dates = []
+    for line in file:
+        dates = line.strip('\n').split(' ')
+        break
+
+    try:
+        deadline_date_from = GithubDate(dates[0])
+        deadline_date_to = GithubDate(dates[1])
+    except Exception:
+        print("Ошибка, некорректный формат дат в students.txt, убедитесь, что вы"
+              " не используете пробел в качестве разделительного символа в первой или второй дате")
+        exit(1)
 
     for line in file:
+        if line.strip('\n').split(' ') == dates:
+            continue
         line = line.strip('\n').split(' ')
         try:
             repo = g.get_repo(line[3])
         except Exception:
-            print("Ошибка, что-то не так с данными \"" + line[0] + ' ' + line[1] +
-                  "\" в файле students.txt. Скорее всего ссылка https://github.com/" + line[3] + " недействительна.")
+            try:
+                print("Ошибка, что-то не так с данными \"" + line[0] + ' ' + line[1] +
+                      "\" в файле students.txt. Скорее всего ссылка https://github.com/" + line[3] +
+                      " недействительна. В случае если данная ошибка возникает для всех или большинства людей файла,"
+                      " то вероятно превышен лимит запросов в гитхаб")
+                continue
+            except Exception:
+                print("Ошибка, что-то не так с данными, не удалось "
+                      "поделить строку на имя, фамилию, группу и репозиторий.")
             continue
         row = []
         last_date = deadline_date_from
