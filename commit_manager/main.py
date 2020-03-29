@@ -4,19 +4,27 @@ from github_date import GithubDate
 
 
 def get_deadline_date_from():
-    print("Введите дату выдачи задания:")
-    deadline_date_from = input()
-    return GithubDate(deadline_date_from)
+    try:
+        print("Введите дату выдачи задания:")
+        deadline_date_from = input()
+        return GithubDate(deadline_date_from)
+    except Exception:
+        print("Неверно введена дата, будет использовано значение по умолчанию: 2000-01-01 00:00:00")
+        return GithubDate("2000-01-01 00:00:00")
 
 
 def get_deadline_date_to():
-    print("Введите дату дедалйна:")
-    deadline_date_to = input()
-    return GithubDate(deadline_date_to)
+    try:
+        print("Введите дату дедалйна:")
+        deadline_date_to = input()
+        return GithubDate(deadline_date_to)
+    except Exception:
+        print("Неверно введена дата, будет использовано значение по умолчанию: 2100-01-01 00:00:00")
+        return GithubDate("2100-01-01 00:00:00")
 
 
 def main():
-    g = Github()
+    g = Github("")  # TODO
     file = open("students.txt", 'r')
     csv_file = open('commits.csv', 'w')
 
@@ -25,7 +33,12 @@ def main():
 
     for line in file:
         line = line.strip('\n').split(' ')
-        repo = g.get_repo(line[3])
+        try:
+            repo = g.get_repo(line[3])
+        except Exception:
+            print("Ошибка, что-то не так с данными \"" + line[0] + ' ' + line[1] +
+                  "\" в файле students.txt. Скорее всего ссылка https://github.com/" + line[3] + " недействительна.")
+            continue
         row = []
         last_date = deadline_date_from
         total_commits = 0
