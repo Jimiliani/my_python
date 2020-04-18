@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+<form action="" method="post">
+    {% csrf_token %}
+    <a href="http://127.0.0.1:8000/logout"> Выйти</a>
+    <a href="http://127.0.0.1:8000/friends"> Друзья</a>
+</form>
+
+<div>
+    <h3>Привет, {{ request.user.first_name }}!</h3>
+</div>
+
+</body>
+</html>

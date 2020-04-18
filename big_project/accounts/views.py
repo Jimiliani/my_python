@@ -39,10 +39,29 @@ def login(request):
 
         if user is not None:
             auth.login(request, user)
-            messages.info(request, "Entrance successful!")
-            return redirect('/login/')
+            return redirect('/me/')
         else:
             messages.info(request, "Error: wrong login or password")
             return redirect('/login/')
     else:
         return render(request, 'signup/login.html')
+
+
+def mainpage(request):
+    if request.user.is_authenticated:
+        messages.info(request, str(request.user))
+        if request.method == 'Post':
+            print(request.user)
+            messages.info(request, str(request.user))
+        else:
+            return render(request, 'pages/mainpage.html')
+    else:
+        return redirect('/login/')
+
+
+def logout(request):
+    auth.logout(request)
+    return redirect('/login/')
+
+
+def friends(request):
