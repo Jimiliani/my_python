@@ -4,10 +4,11 @@ from django.urls import path
 from .views import *
 
 app_name = 'accounts'
+
 urlpatterns = [
-    path('me/', mainpage, name='mainpage'),
     path('register/', register, name='register'),
     path('login/', login, name='login'),
     path('logout/', logout, name='logout'),
-    path('friends/', friends, name='logout'),
+    path('<int:pk>/', MainpageView.as_view(), name='mainpage'),
+    path('<int:pk>/friends/', FriendsView.as_view(), name='friends'),
 ]

@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, auth
+from django.views import generic
 
 
 def register(request):
@@ -23,7 +24,7 @@ def register(request):
                                                 email=email, password=password1)
                 user.save()
                 messages.info(request, 'User created')
-                return redirect('/register/')
+                return redirect('/login/')
         else:
             messages.info(request, "Error: Password doesn't matching")
         return redirect('/register/')
@@ -39,7 +40,7 @@ def login(request):
 
         if user is not None:
             auth.login(request, user)
-            return redirect('/me/')
+            return redirect('http://127.0.0.1:8000/' + str(user.id))
         else:
             messages.info(request, "Error: wrong login or password")
             return redirect('/login/')
@@ -47,21 +48,16 @@ def login(request):
         return render(request, 'signup/login.html')
 
 
-def mainpage(request):
-    if request.user.is_authenticated:
-        messages.info(request, str(request.user))
-        if request.method == 'Post':
-            print(request.user)
-            messages.info(request, str(request.user))
-        else:
-            return render(request, 'pages/mainpage.html')
-    else:
-        return redirect('/login/')
-
-
 def logout(request):
     auth.logout(request)
     return redirect('/login/')
 
 
-def friends(request):
+class MainpageView(generic.DetailView):
+    model = User
+    template_name = 'pages/mainpage.html'
+
+
+class FriendsView(generic.DetailView):
+    model = User
+    template_name = 'pages/friends.html'

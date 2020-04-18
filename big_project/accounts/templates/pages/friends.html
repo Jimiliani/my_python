@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ user.first_name }}</title>
+    <title>Друзья</title>
 </head>
 <body>
 <form action="" method="post">
@@ -13,8 +13,17 @@
 </form>
 
 <div>
-    <h3>Привет, {{ user.first_name }}!</h3>
-    <h3>Твой логин {{ user.username }}</h3>
+    <h3>Здесь будет список ваших друзей</h3>
+
+    {% if user.friends_set.all %}
+        <ul>
+            {% for friend in user.friends_set.all %}
+                <li>Твой друг, friend</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У тебя нет друзей :(</p>
+    {% endif %}
 </div>
 
 </body>
