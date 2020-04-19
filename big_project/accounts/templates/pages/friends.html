@@ -10,10 +10,19 @@
     <a href="{% url 'accounts:mainpage' user.id %}"> Моя страница</a>
     <a href="{% url 'accounts:friends' user.id %}"> Друзья</a>
     <a href="http://127.0.0.1:8000/logout"> Выйти</a>
+    <h3>Здесь будет список ваших друзей</h3>
+    <label>
+        <input type="text" id="friend_id" name="friend_id" placeholder="Введите id друга">
+        <input type="Submit">
+    </label><br>
 </form>
 
 <div>
-    <h3>Здесь будет список ваших друзей</h3>
+    Ваш id: {{ user.id }}
+
+    {% for message in messages %}
+        <h3>{{ message }}</h3>
+    {% endfor %}
 
     {% if user.friends_set.all %}
         <ul>

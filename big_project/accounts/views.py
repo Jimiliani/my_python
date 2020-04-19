@@ -14,10 +14,10 @@ def register(request):
         email = request.POST['email']
         if password1 == password2:
             if User.objects.filter(username=username).exists():
-                messages.info(request, "Error: username already created")
+                messages.info(request, "Этот логин уже используется, введите другой")
                 return redirect('/register/')
             elif User.objects.filter(email=email).exists():
-                messages.info(request, "Error: email already exists")
+                messages.info(request, "Эта почта уже используется, введите другую")
                 return redirect('/register/')
             else:
                 user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name,
@@ -26,7 +26,7 @@ def register(request):
                 messages.info(request, 'User created')
                 return redirect('/login/')
         else:
-            messages.info(request, "Error: Password doesn't matching")
+            messages.info(request, "Пароли не совпадают")
         return redirect('/register/')
     else:
         return render(request, 'signup/register.html')
@@ -61,3 +61,19 @@ class MainpageView(generic.DetailView):
 class FriendsView(generic.DetailView):
     model = User
     template_name = 'pages/friends.html'
+
+    def post(self, request, pk):
+        if request.POST['friend_id'] == '':
+            messages.info(request, "Вы не ввели id")
+        elif int(request.user.id) == int(request.POST['friend_id']):
+            messages.info(request, "Вы не можете стать другом самому себе")
+        elif User.objects.filter(id=request.POST['friend_id']):
+            # print(User.objects.filter(id=request.POST['friend_id']))
+            # print(User.objects.filter(id=request.POST['friend_id'])[0])
+            # request.user.friends_set.add(User.objects.filter(id=request.POST['friend_id'])[0])
+            messages.info(request,
+                          "Вы отправили(нет) заявку пользователю " +
+                          User.objects.filter(id=request.POST['friend_id'])[0].get_full_name())
+        else:
+            messages.info(request, "Нет человека с таким id!")
+        return render(request, self.template_name)
