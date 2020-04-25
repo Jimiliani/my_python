@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>Моя страница</title>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <form method="post">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button class="btn btn-info" type="submit">Изменить</button>
+    </form>
+    <br>
+</div>
+{% endblock %}

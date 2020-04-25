@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>{{ user.get_full_name }}</title>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-4 col-md-4 col-md-4 col-lg-4">
+            <h1>Профиль</h1>
+            {% if user.userprofile.image %}
+            <img src="{{user.userprofile.image.url}}" height="256px" width="256px">
+            {% else %}
+            <img src="../../../media/profile_image/user.png" height="256px" width="256px">
+            {% endif %}
+            <p>Имя: {{user.first_name}}</p>
+            <p>Фамилия: {{user.last_name}}</p>
+            {% if user.userprofile.description %}
+            <p>Статус: {{user.userprofile.description}}</p>
+            {% endif %}
+            {% if user.userprofile.city %}
+            <p>Город: {{user.userprofile.city}}</p>
+            {% endif %}
+            {% if user.userprofile.phone %}
+            <p>Телефон: {{user.userprofile.phone}}</p>
+            {% endif %}
+            {% if user.email %}
+            <p>Электронная почта: {{user.email}}</p>
+            {% endif %}
+            {% if friend_button == 'add' %}
+            <a href="{% url 'accounts:change_friends' operation='add' pk=user.pk %}">
+                <button type="button" class="btn btn-success">Добавить друга</button>
+            </a>
+            {% elif friend_button == 'del'%}
+            <a href="{% url 'accounts:change_friends' operation='lose' pk=user.pk %}">
+                <button type="button" class="btn btn-danger">Удалить друга</button>
+            </a>
+            {% else %}
+            <a href="/accounts/profile/edit">
+                <button type="button" class="btn btn-info">Редактировать профиль</button>
+            </a>
+            {% endif %}
+        </div>
+        <div class="сol-8 col-sm-8 col-md-8 col-lg-8">
+            {% if can_post %}
+            <form method="post">
+                {% csrf_token %}
+                <label for="post_text" style="padding-top: 10px; padding-right: 5px"> </label>
+                <input type="text" name="post_text" id="post_text" class="rounded" autofocus>
+                <button type="submit" class="btn btn-primary">Отправить</button>
+            </form>
+            {% endif %}
+            {% for post in posts %}
+            <div class="w3-panel w3-blue w3-round-xxlarge">
+                <p style="color:black; padding-top: 12px">
+                    {{ post.post_text}}
+                    <sub style="color: darkslategray">{{ post.sending_time }}</sub>
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
