@@ -7,13 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.utils.datetime_safe import date
 
-from .forms import RegistrationForm, UserProfileForm, LoginForm
-from .models import Friend, Dialog, Post, UserProfile
+from .forms import UserProfileForm, LoginForm
+from .models import Friend, Dialog, SocialPost
 
 
 @login_required
 def home(request):
-    posts = Post.objects.filter(sending_time__lte=timezone.now()).order_by('-sending_time')[:10]
+    posts = SocialPost.objects.filter(sending_time__lte=timezone.now()).order_by('-sending_time')[:10]
     args = {'posts': posts}
     return render(request, 'accounts/home.html', args)
 
@@ -60,26 +60,14 @@ def register(request):
             stop = True
         if stop:
             return render(request, 'accounts/reg_form.html')
-        user = User.objects.create(username=request.POST['username'],
-                                   first_name=request.POST['first_name'],
-                                   last_name=request.POST['last_name'],
-                                   password=request.POST['password1'])
-        UserProfile.objects.create(user=user)
-        return redirect('accounts/profile')
+        user = User.objects.create_user(username=request.POST['username'],
+                                        first_name=request.POST['first_name'],
+                                        last_name=request.POST['last_name'],
+                                        password=request.POST['password1'])
+        user.save()
+        return redirect('/accounts/profile')
     else:
         return render(request, 'accounts/reg_form.html')
-    # if request.method == 'POST':
-    #     form = RegistrationForm(request.POST)
-    #     if form.is_valid():
-    #         form.save()
-    #         return redirect('/accounts')
-    #     else:
-    #         args = {'form': form}
-    #         return render(request, 'accounts/reg_form.html', args)
-    # else:
-    #     form = RegistrationForm()
-    #     args = {'form': form}
-    #     return render(request, 'accounts/reg_form.html', args)
 
 
 @login_required
@@ -92,8 +80,8 @@ def view_profile(request, pk=None):
         can_post = True
     if request.method == 'POST':
         if request.POST['post_text']:
-            Post.objects.create(user_id=request.user.id,
-                                post_text=request.POST['post_text'])
+            SocialPost.objects.create(user_id=request.user.id,
+                                      post_text=request.POST['post_text'])
     friend_button = ''
     if pk is not None:
         user = User.objects.get(pk=pk)
@@ -108,7 +96,7 @@ def view_profile(request, pk=None):
                 friend_button = 'del'
     else:
         user = request.user
-    posts = reversed(Post.objects.filter(user_id=user.id))
+    posts = reversed(SocialPost.objects.filter(user_id=user.id))
     args = {'user': user, 'friend_button': friend_button, 'posts': posts, 'can_post': can_post}
     return render(request, 'accounts/profile.html', args)
 

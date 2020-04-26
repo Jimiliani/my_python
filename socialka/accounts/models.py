@@ -9,7 +9,7 @@ class UserProfile(models.Model):
     description = models.CharField(max_length=100, default='')
     city = models.CharField(max_length=100, default='')
     website = models.URLField(default='')
-    phone = models.IntegerField(blank=True, null=True, default='')
+    phone = models.IntegerField(default=0)
     image = models.ImageField(blank=True, null=True)
 
     def __str__(self):
@@ -49,7 +49,7 @@ class Dialog(models.Model):
         return User.objects.get(id=self.message_from_id)
 
 
-class Post(models.Model):
+class SocialPost(models.Model):
     user_id = models.IntegerField()
     post_text = models.TextField(blank=False)
     sending_time = models.DateTimeField(auto_now=True)

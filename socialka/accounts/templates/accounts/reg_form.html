@@ -9,21 +9,22 @@
     <h1>Регистрация</h1>
     <form method="post">
         {% csrf_token %}
-        <label for="first_name">Имя:</label>
+        <label for="first_name">Имя:</label><br>
         <input type="text" name="first_name" id="first_name" class="rounded"><br>
-        <label for="last_name">Фамилия:</label>
+        <label for="last_name">Фамилия:</label><br>
         <input type="text" name="last_name" id="last_name" class="rounded"><br>
-        <label for="email">Электронная почта:</label>
+        <label for="email">Электронная почта:</label><br>
         <input type="text" name="email" id="email" class="rounded"><br>
-        <label for="username">Логин:</label>
+        <label for="username">Логин:</label><br>
         <input type="text" name="username" id="username" class="rounded"><br>
-        <label for="password1">Пароль:</label>
+        <label for="password1">Пароль:</label><br>
         <input type="password" name="password1" id="password1" class="rounded"><br>
-        <label for="password2">Повторите пароль:</label>
+        <label for="password2">Повторите пароль:</label><br>
         <input type="password" name="password2" id="password2" class="rounded"><br>
         {% for message in messages %}
         <strong>{{ message }}</strong><br>
         {% endfor %}
+        <br>
         <button type="submit" class="btn btn-success">Зарегистрироваться</button>
     </form>
 </div>
