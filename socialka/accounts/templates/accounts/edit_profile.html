@@ -9,7 +9,17 @@
 <div class="container">
     <form method="post">
         {% csrf_token %}
-        {{form.as_p}}
+        <label for="description">Статус:</label><br>
+        <input type="text" name="description" id="description" value="{{ user.userprofile.description }}"
+               class="rounded"><br><br>
+        <label for="city">Город:</label><br>
+        <input type="text" name="city" id="city" value="{{ user.userprofile.city }}" class="rounded"><br><br>
+        <label for="website">Веб-сайт:</label><br>
+        <input type="text" name="website" id="website" value="{{ user.userprofile.website }}" class="rounded"><br><br>
+        <label for="phone">Телефон:</label><br>
+        <input type="text" name="phone" id="phone" value="{{ user.userprofile.phone }}" class="rounded"><br><br>
+        <label for="image">Фото профиля:</label><br>
+        <input type="file" name="image" id="image" class="rounded"><br><br>
         <button class="btn btn-info" type="submit">Изменить</button>
     </form>
     <br>

@@ -26,6 +26,9 @@
             {% if user.userprofile.phone %}
             <p>Телефон: {{user.userprofile.phone}}</p>
             {% endif %}
+            {% if user.userprofile.website %}
+            <p>Веб-сайт: {{user.userprofile.website}}</p>
+            {% endif %}
             {% if user.email %}
             <p>Электронная почта: {{user.email}}</p>
             {% endif %}
@@ -47,7 +50,7 @@
             {% if can_post %}
             <form method="post">
                 {% csrf_token %}
-                <label for="post_text" style="padding-top: 10px; padding-right: 5px"> </label>
+                <label for="post_text" style="padding-top: 20px; padding-right: 5px"> </label>
                 <input type="text" name="post_text" id="post_text" class="rounded" autofocus>
                 <button type="submit" class="btn btn-primary">Отправить</button>
             </form>

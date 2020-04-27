@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.utils.datetime_safe import date
 
-from .forms import UserProfileForm, LoginForm
+from .forms import LoginForm
 from .models import Friend, Dialog, SocialPost
 
 
@@ -162,14 +162,17 @@ def view_dialog(request, pk):
 
 @login_required
 def edit_profile(request):
-    form = UserProfileForm(instance=request.user.userprofile)
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, request.FILES, instance=request.user.userprofile)
-        if form.is_valid():
-            form.save()
-            return redirect('/accounts/profile')
-    args = {'form': form}
-    return render(request, 'accounts/edit_profile.html', args)
+        request.user.userprofile.description = request.POST['description']
+        request.user.userprofile.city = request.POST['city']
+        request.user.userprofile.website = request.POST['website']
+        request.user.userprofile.phone = request.POST['phone']
+        request.user.userprofile.image = request.POST['image']
+        request.user.userprofile.save()
+        return redirect('/accounts/profile')
+    else:
+        args = {'user': request.user}
+        return render(request, 'accounts/edit_profile.html', args)
 
 
 @login_required
