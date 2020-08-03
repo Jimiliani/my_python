@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block styles %}
+    <style>
+
+        svg {
+            margin: 10px auto 20px auto;
+        }
+
+        #profileImage {
+            border: 2px solid black;
+            width: 50%;
+            float: left;
+            margin: 0 10px 10px 0;
+        }
+
+        #fullName {
+            margin: 10px 0;
+        }
+
+        #mainContent {
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.5);
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            margin: 10px;
+        }
+
+
+    </style>
+{% endblock %}
+{% block body %}
+    <div id="mainContent">
+        <div id="profileInfoContent">
+            <img id="profileImage" src="{{ userProfile.profile_picture.url }}" alt="Фото профиля">
+            <h3 id="fullName">{{ greenLeafUser.last_name }} {{ greenLeafUser.first_name }}</h3>
+            {% if userProfile.city %}<strong>Город: </strong> {{ userProfile.city }}<br>{% endif %}
+            {% if userProfile.phone %}<strong>Телефон: </strong> {{ userProfile.phone }}<br>{% endif %}
+        </div>
+
+        <div>
+            {% if user == greenLeafUser %} В следующем обновлении можно будет добавлять свои посты на своей странице {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    <script>
+        $(window).on('load', function () {
+            makeCorrectProfileImageSize();
+        });
+
+        $(window).on('resize', function () {
+            makeCorrectProfileImageSize();
+        });
+
+        function makeCorrectProfileImageSize() {
+            let width = $(window).width();
+            if (width >= 850) {
+                $('#profileImage').css('width', '50%');
+                $('#profileInfoContent').css('flex-direction', 'row');
+
+            } else if (width >= 560) {
+                $('#profileImage').css('width', '100%');
+                $('#profileInfoContent').css('flex-direction', 'column');
+
+            } else {
+                $('#profileImage').css('width', '100%');
+                $('#profileInfoContent').css('flex-direction', 'column');
+
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+</head>
+<style>
+    body {
+        background: linear-gradient(0.25turn, #e66465, #9198e5);
+        font-family: 'Pangolin', cursive;
+
+    }
+
+    .container {
+        background: rgba(245, 245, 245, 0.7);
+        border-radius: 25px;
+        margin: -420px auto auto auto;
+        text-align: center;
+        display: block;
+        width: 300px;
+    }
+
+    form {
+        padding: 20px;
+    }
+
+    h2 {;
+        margin-top: 0;
+    }
+
+    input, button {
+        border-radius: 20px;
+        outline: none;
+        font-family: 'Pangolin', cursive;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .fieldWrapper {
+        margin: 20px 10px;
+    }
+
+    ul {
+        margin-top: 5px;
+    }
+
+</style>
+<body>
+<div class="container">
+    <form role="form" method="post">
+        {% csrf_token %}
+        <h2>Вход</h2>
+        <div class="fieldWrapper">
+            <label for="id_username">Username:</label> <input type="text" name="username" maxlength="150" autofocus=""
+                                                              required="" id="id_username">
+            <ul class="errorlist">
+                <li>This field is required.</li>
+            </ul>
+        </div>
+        <div class="fieldWrapper">
+            <label for="id_password1">Password:</label> <input type="password" name="password1"
+                                                               autocomplete="new-password" required=""
+                                                               id="id_password1">
+            <ul class="errorlist">
+                <li>This field is required.</li>
+            </ul>
+        </div>
+        {% if error %} {{ error }}<br> {% endif %}
+        <button type="submit" target="#">Готово</button>
+
+    </form>
+</div>
+<script>
+    $(window).on('load', (function () {
+        $('.container').animate({
+            opacity: '1.0',
+            marginTop: '+=480px',
+        }, 500).animate({
+            marginTop: '-=30px',
+        }, 300)
+    }));
+</script>
+</body>
+</html>
