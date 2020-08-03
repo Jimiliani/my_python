@@ -1,5 +1,8 @@
+from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+
+from userprofile.models import GreenLeafUserProfile
 
 
 class GreenLeafUserCreationForm(UserCreationForm):
@@ -15,3 +18,15 @@ class GreenLeafUserCreationForm(UserCreationForm):
         self.fields['first_name'].required = True
         self.fields['last_name'].label = 'Last name'
         self.fields['last_name'].required = True
+
+
+class GreenLeafUserProfileChangeForm(forms.ModelForm):
+    class Meta:
+        fields = ('city', 'phone', 'profile_picture')
+        model = GreenLeafUserProfile
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['city'].label = 'City'
+        self.fields['phone'].label = 'Phone'
+        self.fields['profile_picture'].label = 'Profile picture'

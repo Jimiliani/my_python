@@ -14,7 +14,7 @@
     }
 
     .container {
-        background: rgba(245, 245, 245, 0.7);
+        background: rgba(245, 245, 245, 0.5);
         border-radius: 25px;
         margin: -420px auto auto auto;
         text-align: center;
@@ -53,16 +53,18 @@
         {% csrf_token %}
         <h2>Вход</h2>
         <div class="fieldWrapper">
-            <label for="id_username">Username:</label> <input type="text" name="username" maxlength="150" autofocus=""
-                                                              required="" id="id_username">
+            <label for="id_username">Username:</label>
+            <input type="text" name="username" maxlength="150" autofocus=""
+                   required="" id="id_username">
             <ul class="errorlist">
                 <li>This field is required.</li>
             </ul>
         </div>
         <div class="fieldWrapper">
-            <label for="id_password1">Password:</label> <input type="password" name="password1"
-                                                               autocomplete="new-password" required=""
-                                                               id="id_password1">
+            <label for="id_password1">Password:</label>
+            <input type="password" name="password1"
+                   autocomplete="new-password" required=""
+                   id="id_password1">
             <ul class="errorlist">
                 <li>This field is required.</li>
             </ul>

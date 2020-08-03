@@ -2,10 +2,6 @@
 {% block styles %}
     <style>
 
-        svg {
-            margin: 10px auto 20px auto;
-        }
-
         #profileImage {
             border: 2px solid black;
             width: 50%;
@@ -17,15 +13,38 @@
             margin: 10px 0;
         }
 
-        #mainContent {
-            padding: 20px;
-            background: rgba(245, 245, 245, 0.5);
-            display: flex;
-            flex-direction: column;
-            border-radius: 20px;
-            margin: 10px;
+        #profileInfoContent {
+            border-width: 0 0 2px 0;
+            border-style: solid;
+            border-top-color: black;
         }
 
+        .button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px 0 15px 0;
+            border-radius: 15px;
+            outline: none;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+        }
+
+        .new-post {
+            cursor: pointer;
+            background-color: cornflowerblue;
+        }
+
+        .add-friend {
+            background-color: lawngreen;
+        }
+
+        .new-post svg {
+            margin: 0 10px -10px 10px;
+        }
+
+        .add-friend svg {
+            margin: 0 10px -10px 10px;
+        }
 
     </style>
 {% endblock %}
@@ -37,9 +56,37 @@
             {% if userProfile.city %}<strong>Город: </strong> {{ userProfile.city }}<br>{% endif %}
             {% if userProfile.phone %}<strong>Телефон: </strong> {{ userProfile.phone }}<br>{% endif %}
         </div>
-
         <div>
-            {% if user == greenLeafUser %} В следующем обновлении можно будет добавлять свои посты на своей странице {% endif %}
+            {% if user.id == greenLeafUser.id %}
+                <button class="button new-post">
+                    <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-plus-circle"
+                         fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z"></path>
+                        <path fill-rule="evenodd"
+                              d="M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z"></path>
+                        <path fill-rule="evenodd"
+                              d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                    </svg>
+                    Новый пост
+                </button>
+            {% else %}
+                <button class="button add-friend">
+                    <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-plus-circle"
+                         fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z"></path>
+                        <path fill-rule="evenodd"
+                              d="M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z"></path>
+                        <path fill-rule="evenodd"
+                              d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                    </svg>
+                    Добавить в друзья
+                </button>
+            {% endif %}
+
         </div>
     </div>
 
