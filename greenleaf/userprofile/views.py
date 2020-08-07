@@ -2,9 +2,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
-from django.views.generic import UpdateView
 
-from .models import GreenLeafUserProfile
+from .models import GreenLeafUserProfile, PostProfile
 
 from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm
 
@@ -27,11 +26,16 @@ def loginView(request):
     return render(request, 'userprofile/login.html', args)
 
 
-def profileViewWithId(request, userId):
-    user = get_object_or_404(User, id=userId)
-    user_profile = get_object_or_404(GreenLeafUserProfile, id=userId)
+def profileViewWithId(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user_profile = get_object_or_404(GreenLeafUserProfile, id=user_id)
+    try:
+        posts = reversed(PostProfile.objects.filter(author__id=int(user_id)))
+    except PostProfile.DoesNotExist:
+        posts = {}
     args = {'greenLeafUser': user,
-            'userProfile': user_profile}
+            'userProfile': user_profile,
+            'posts': posts}
     return render(request, 'userprofile/userProfile.html', args)
 
 
