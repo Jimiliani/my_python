@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block styles %}
+    <style>
+        #mainContent {
+            text-align: center;
+        }
+
+        .typeOfUsers {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .typeOfUsers button {
+            background: rgba(245, 245, 245, 0.7);
+            text-decoration: none;
+            color: black;
+            padding: 10px 20px;
+            border-width: 1px 2px;
+            border-style: solid;
+            border-top-color: black;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .typeOfUsers button:first-child {
+            border-width: 2px 2px 1px 2px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .typeOfUsers button:last-child {
+            border-width: 1px 2px 2px 2px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .active {
+            background: rgba(245, 245, 245, 1.0) !important;
+        }
+
+        #users {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .userCard {
+            display: flex;
+            flex-direction: row;
+            margin: 10px 0;
+        }
+
+        .userCardImage {
+            width: 25%;
+            margin: 0 10px;
+        }
+
+        .userCardImage img {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div id="mainContent">
+        <div class="typeOfUsers">
+            <button class="active" id="myFriends">Мои друзья</button>
+            <button id="allUsers">Все пользователи</button>
+            <button id="outgoingRequests">Исходящие заявки</button>
+            <button id="incomingRequests">Входящие заявки</button>
+        </div>
+        <div id="users"></div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        $(window).on('load', function () {
+            getAndPrintFriends();
+        })
+
+        function getAndPrintFriends() {
+            let id = $('.active').attr('id');
+            let friendsProfiles, friendsUsers
+            $.when(
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'api:friendship-list' %}",
+                    data: {
+                        requestType: id,
+                        contentType: 'userprofiles',
+                    },
+                    success: function (friends) {
+                        friendsProfiles = friends
+                    },
+                    error: function (data, errors) {
+                        console.log('error');
+                        console.log(data);
+                        console.log(errors);
+                    }
+                }),
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'api:friendship-list' %}",
+                    data: {
+                        requestType: id,
+                        contentType: 'users'
+                    },
+                    success: function (friends) {
+                        friendsUsers = friends
+                    },
+                    error: function (data, errors) {
+                        console.log('error');
+                        console.log(data);
+                        console.log(errors);
+                    }
+                })
+            ).then(function () {
+                printFriends(friendsProfiles, friendsUsers)
+            })
+        }
+
+        function printFriends(profiles, users) {
+            let usersContent = $('#users');
+            let content = "";
+            console.log(profiles);
+            console.log(users);
+            for (let i = 0; i < profiles.length; ++i) {
+                content += "" +
+                    "<div class='userCard'>" +
+                    "   <div class='userCardImage'>" +
+                    "       <img src='" + profiles[i]['profile_picture'] + "'>   " +
+                    "   </div>" +
+                    "   <div class='userCardMainContent'>" +
+                    users[i]['first_name'] + " " + users[i]['last_name'] +
+                    "   </div>" +
+                    "</div>"
+            }
+            usersContent.html(content)
+        }
+    </script>
+    <script>
+        $('.typeOfUsers button').on('mouseenter', function () {
+            $(this).css('background', 'rgba(245, 245, 245, 1.0)')
+        });
+
+        $('.typeOfUsers button').on('mouseleave', function () {
+            $(this).css('background', 'rgba(245, 245, 245, 0.7)')
+        })
+
+        $('.typeOfUsers button').on('click', function () {
+            if ($('.active') !== $(this)) {
+                $('.active').toggleClass('active');
+                $(this).toggleClass('active');
+                getAndPrintFriends();
+            }
+        })
+    </script>
+{% endblock %}

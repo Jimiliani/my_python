@@ -29,14 +29,13 @@ def loginView(request):
 def profileViewWithId(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user_profile = get_object_or_404(GreenLeafUserProfile, id=user_id)
-    try:
-        posts = reversed(PostProfile.objects.filter(author__id=int(user_id)))
-    except PostProfile.DoesNotExist:
-        posts = {}
     args = {'greenLeafUser': user,
-            'userProfile': user_profile,
-            'posts': posts}
+            'userProfile': user_profile}
     return render(request, 'userprofile/userProfile.html', args)
+
+
+def friendsView(request):
+    return render(request, 'userprofile/friends.html')
 
 
 class RegisterView(View):
@@ -60,7 +59,7 @@ class RegisterView(View):
                                                               city='',
                                                               phone='')
             userProfile.save()
-            return redirect('/user/' + str(user.id))
+            return redirect('userprofile:login')
 
         return render(request, self.template_name, {'form': form})
 

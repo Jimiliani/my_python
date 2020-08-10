@@ -1,5 +1,6 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
-from userprofile.models import PostProfile, PostLike, PostComment
+from userprofile.models import PostProfile, PostLike, PostComment, Friendship, GreenLeafUserProfile
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -17,4 +18,22 @@ class LikeSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostComment
+        fields = '__all__'
+
+
+class FriendshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Friendship
+        fields = '__all__'
+
+
+class GreenLeafUserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GreenLeafUserProfile
+        fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = '__all__'

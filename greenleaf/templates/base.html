@@ -10,7 +10,6 @@
             background: linear-gradient(0.25turn, #e66465, #9198e5);
             font-family: 'Pangolin', cursive;
             font-size: 20px;
-
         }
 
         .container {
@@ -79,7 +78,7 @@
                   style='fill:limegreen;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px'></path>
         </svg>
         <a id="firstHref" href="{% url 'userprofile:profile' user_id=user.id %}">Мой профиль</a>
-        <a href="#">Друзья </a>
+        <a href="{% url 'userprofile:friends' %}">Друзья </a>
         <a href="#">Сообщения </a>
         <a href="{% url 'userprofile:settings' %}">Настройки </a>
         <a id="lastHref" href="{% url 'userprofile:logout' %}">Выход </a>

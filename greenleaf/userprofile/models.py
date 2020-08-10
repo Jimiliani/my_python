@@ -9,8 +9,33 @@ class GreenLeafUserProfile(models.Model):
     city = models.CharField(max_length=63, blank=True)
     phone = models.CharField(max_length=15, blank=True)
 
+    def friends(self):
+        return Friendship.objects.filter(owner=User.objects.get(id=self.id))
+
+    def in_friends(self, user):
+        if len(Friendship.objects.filter(owner=User.objects.get(id=self.id),
+                                         friend=user)) > 0:
+            return True
+        return False
+
+    def add_friend(self, user):
+        this_user = User.objects.get(id=self.id)
+        Friendship.objects.create(owner=this_user, friend=user)
+        Friendship.objects.create(owner=user, friend=this_user)
+
     def __str__(self):
         return str(self.user) + ' profile'
+
+    def get_full_name(self):
+        return str(self.user.first_name + ' ' + self.user.last_name)
+
+
+class Friendship(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
+    friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friends')
+
+    def __str__(self):
+        return str(self.owner) + ' has friend ' + str(self.friend)
 
 
 class PostProfile(models.Model):
@@ -23,12 +48,11 @@ class PostProfile(models.Model):
 
 
 class PostLike(models.Model):
-    related_post = models.ForeignKey(PostProfile, on_delete=models.CASCADE)
+    post = models.ForeignKey(PostProfile, on_delete=models.CASCADE)
     owner = models.ForeignKey(GreenLeafUserProfile, on_delete=models.CASCADE)
-    count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return str(self.related_post) + ' post ' + str(self.owner) + ' like owner '
+        return str(self.post.id) + ' post id ' + str(self.owner) + ' like owner '
 
 
 class PostComment(models.Model):
