@@ -29,7 +29,7 @@
             max-height: 340px;
         }
 
-        a {
+        .navbar-button {
             background: rgba(245, 245, 245, 0.7);
             text-decoration: none;
             color: black;
@@ -60,8 +60,9 @@
             flex-direction: column;
             border-radius: 20px;
             margin: 10px;
+            max-width: 800px;
+            min-width: 300px;
         }
-
 
     </style>
     {% block styles %}
@@ -77,11 +78,11 @@
             <path d='M173,253c86,81,175,129,292,147'
                   style='fill:limegreen;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px'></path>
         </svg>
-        <a id="firstHref" href="{% url 'userprofile:profile' user_id=user.id %}">Мой профиль</a>
-        <a href="{% url 'userprofile:friends' %}">Друзья </a>
-        <a href="#">Сообщения </a>
-        <a href="{% url 'userprofile:settings' %}">Настройки </a>
-        <a id="lastHref" href="{% url 'userprofile:logout' %}">Выход </a>
+        <a class="navbar-button" id="firstHref" href="{% url 'userprofile:profile' user_id=user.id %}">Мой профиль</a>
+        <a class="navbar-button" href="{% url 'userprofile:friends' %}">Друзья </a>
+        <a class="navbar-button" href="{% url 'userprofile:messages' %}">Сообщения </a>
+        <a class="navbar-button" href="{% url 'userprofile:settings' %}">Настройки </a>
+        <a class="navbar-button" id="lastHref" href="{% url 'userprofile:logout' %}">Выход </a>
     </div>
     {% block body %}
 
@@ -101,7 +102,7 @@
         let width = $(window).width();
         if (width >= 850) {
             $('.container').css('display', 'flex');
-        } else if (width >= 560) {
+        } else if (width >= 680) {
             $('.container').css('display', 'flex');
         } else {
             $('.container').css('display', 'inline');

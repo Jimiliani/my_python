@@ -10,4 +10,6 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('user/<str:user_id>', profileViewWithId, name='profile'),
     path('friends/', friendsView, name='friends'),
+    path('messages/', messagesView, name='messages'),
+    path('dialog/<str:friend_id>', dialogView, name='dialog'),
 ]

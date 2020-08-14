@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from userprofile.models import GreenLeafUserProfile
+from userprofile.forms import MessageCreationForm
+from userprofile.models import GreenLeafUserProfile, Message
 from .serializers import *
 
 
@@ -133,3 +134,25 @@ class LikeList(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Friendship.DoesNotExist:
             return Response()
+
+
+class DialogView(APIView):
+    form_class = MessageCreationForm
+    template_name = 'userprofile/dialog.html'
+
+    def get(self, request, friend_id, *args, **kwargs):
+        user_profile = GreenLeafUserProfile.objects.get(user=request.user)
+        friend_profile = GreenLeafUserProfile.objects.get(id=friend_id)
+        messages = Message.objects.none()
+        messages = reversed(messages.union(
+            Message.objects.filter(message_from=user_profile, message_to=friend_profile),
+            Message.objects.filter(message_from=friend_profile, message_to=user_profile)).order_by('-time')[:20])
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = MessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

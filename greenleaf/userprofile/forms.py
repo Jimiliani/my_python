@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from userprofile.models import GreenLeafUserProfile
+from userprofile.models import GreenLeafUserProfile, Message
 
 
 class GreenLeafUserCreationForm(UserCreationForm):
@@ -30,3 +30,13 @@ class GreenLeafUserProfileChangeForm(forms.ModelForm):
         self.fields['city'].label = 'City'
         self.fields['phone'].label = 'Phone'
         self.fields['profile_picture'].label = 'Profile picture'
+
+
+class MessageCreationForm(forms.ModelForm):
+    class Meta:
+        fields = ('text',)
+        model = Message
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].label = 'Текст сообщения'

@@ -63,3 +63,10 @@ class PostComment(models.Model):
 
     def __str__(self):
         return str(self.related_post) + ' post ' + str(self.owner) + ' comment owner '
+
+
+class Message(models.Model):
+    message_from = models.ForeignKey(GreenLeafUserProfile, on_delete=models.CASCADE, related_name='message_from')
+    message_to = models.ForeignKey(GreenLeafUserProfile, on_delete=models.CASCADE, related_name='message_to')
+    text = models.TextField(max_length=10000)
+    time = models.DateTimeField(auto_now_add=True)

@@ -35,6 +35,11 @@
             background-color: cornflowerblue;
         }
 
+        .new-post svg {
+            margin: 0 10px -10px 10px;
+        }
+
+
         .add-friend {
             background-color: lawngreen;
             display: none;
@@ -45,9 +50,6 @@
             display: none;
         }
 
-        .new-post svg {
-            margin: 0 10px -10px 10px;
-        }
 
         .add-friend svg {
             margin: 0 10px -10px 10px;
@@ -230,6 +232,7 @@
 
         $(window).on('resize', function () {
             makeCorrectProfileImageSize();
+            makeCorrectTextareaSize();
         });
 
         function makeCorrectProfileImageSize() {

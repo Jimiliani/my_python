@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block styles %}
+    <style>
+        a {
+            background: rgba(245, 245, 245, 0.7);
+            text-decoration: none;
+            color: black;
+            padding: 10px 20px;
+            border-width: 1px 2px;
+            border-style: solid;
+            border-top-color: black;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        a:first-of-type {
+            border-width: 2px 2px 1px 2px;
+            border-radius: 25px 25px 0 0;
+        }
+
+        a:last-of-type {
+            border-width: 1px 2px 2px 2px;
+            border-radius: 0 0 25px 25px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="mainContent">
+        {% if not friends %}
+            <p>У вас пока нет диалогов, добавьте друзей, чтобы они появились!</p>
+        {% endif %}
+        {% for friend in friends %}
+            <a id="{{ friend.id }}"
+               href="{% url 'userprofile:dialog' friend_id=friend.id %}">{{ friend.first_name }} {{ friend.last_name }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $('a').on('click', function () {
+            let dialogId = $(this).attr('id');
+            if (localStorage.getItem('openedDialogs') === null) {
+                localStorage.setItem('openedDialogs', JSON.stringify([dialogId]));
+                console.log(localStorage.getItem('openedDialogs'));
+            } else {
+                let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+                console.log(openedDialogs);
+                if (!openedDialogs.includes(dialogId.toString())) {
+                    openedDialogs.push(dialogId);
+                }
+                console.log(openedDialogs);
+                localStorage.setItem('openedDialogs', JSON.stringify(openedDialogs));
+            }
+        })
+    </script>
+{% endblock %}

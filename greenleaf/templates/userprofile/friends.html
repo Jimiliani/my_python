@@ -46,7 +46,18 @@
         .userCard {
             display: flex;
             flex-direction: row;
+            background: rgba(245, 245, 245, 0.65);
             margin: 10px 0;
+            padding: 10px 0;
+            border-width: 1px;
+            border-style: solid;
+            border-top-color: black;
+        }
+
+        .userCardMainContent {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .userCardImage {
@@ -58,6 +69,43 @@
             width: 100%;
             height: 100%;
         }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px 10px 15px 0;
+            border-radius: 15px;
+            outline: none;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .add-friend {
+            background-color: lawngreen;
+            display: none;
+        }
+
+        .delete-friend {
+            background-color: rgb(255, 40, 40);
+            display: none;
+        }
+
+
+        .add-friend svg {
+            margin: 0 10px -10px 10px;
+        }
+
+        .delete-friend svg {
+            margin: 0 10px -10px 10px;
+        }
+
+
     </style>
 {% endblock %}
 {% block body %}
@@ -74,7 +122,7 @@
 {% block scripts %}
     <script>
         $(window).on('load', function () {
-            getAndPrintFriends();
+            getAndPrintFriends()
         })
 
         function getAndPrintFriends() {
@@ -115,6 +163,10 @@
                 })
             ).then(function () {
                 printFriends(friendsProfiles, friendsUsers)
+            }).then(function () {
+                chooseButton()
+            }).then(function () {
+                bindScripts()
             })
         }
 
@@ -130,7 +182,35 @@
                     "       <img src='" + profiles[i]['profile_picture'] + "'>   " +
                     "   </div>" +
                     "   <div class='userCardMainContent'>" +
+                    "       <a href=\"../user/" + users[i]['id'] + "\">" +
                     users[i]['first_name'] + " " + users[i]['last_name'] +
+                    "       </a>" +
+                    "       <div class='addOrDeleteFriendButton' id=\"" + users[i]['id'] + "\">\n" +
+                    "                <button class=\"button add-friend\">\n" +
+                    "                    <svg width=\"32px\" height=\"32px\" viewBox=\"0 0 16 16\" class=\"bi bi-plus-circle\"\n" +
+                    "                         fill=\"currentColor\"\n" +
+                    "                         xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                    "                        <path fill-rule=\"evenodd\"\n" +
+                    "                              d=\"M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z\"></path>\n" +
+                    "                        <path fill-rule=\"evenodd\"\n" +
+                    "                              d=\"M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z\"></path>\n" +
+                    "                        <path fill-rule=\"evenodd\"\n" +
+                    "                              d=\"M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"></path>\n" +
+                    "                    </svg>\n" +
+                    "                    Добавить в друзья\n" +
+                    "                </button>\n" +
+                    "\n" +
+                    "                <button class=\"button delete-friend\">\n" +
+                    "                    <svg width=\"32px\" height=\"32px\" viewBox=\"0 0 16 16\" class=\"bi bi-dash-circle\"\n" +
+                    "                         fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                    "                        <path fill-rule=\"evenodd\"\n" +
+                    "                              d=\"M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"></path>\n" +
+                    "                        <path fill-rule=\"evenodd\"\n" +
+                    "                              d=\"M3.5 8a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.5-.5z\"></path>\n" +
+                    "                    </svg>\n" +
+                    "                    Удалить из друзей\n" +
+                    "                </button>\n" +
+                    "            </div>" +
                     "   </div>" +
                     "</div>"
             }
@@ -153,5 +233,126 @@
                 getAndPrintFriends();
             }
         })
+    </script>
+    <script>
+        function chooseButton() {
+            let id = $('.active').attr('id');
+            let addButtons = $('.add-friend')
+            let deleteButtons = $('.delete-friend')
+            switch (id) {
+                case 'myFriends':
+                    addButtons.css('display', 'none');
+                    deleteButtons.css('display', 'block');
+                    break;
+                case 'allUsers':
+                    let outgoingRequestsIds, myFriendsIds
+                    $.when($.ajax({
+                            type: "GET",
+                            url: "{% url 'api:friendship-list' %}",
+                            data: {
+                                requestType: 'myFriends',
+                                contentType: 'users'
+                            },
+                            success: function (friends) {
+                                myFriendsIds = friends.map((value) => (value.id))
+                            },
+                            error: function (data, errors) {
+                                console.log('error');
+                                console.log(data);
+                                console.log(errors);
+                            }
+                        }),
+                        $.ajax({
+                            type: "GET",
+                            url: "{% url 'api:friendship-list' %}",
+                            data: {
+                                requestType: 'outgoingRequests',
+                                contentType: 'users'
+                            },
+                            success: function (friends) {
+                                outgoingRequestsIds = friends.map((value) => (value.id))
+                            },
+                            error: function (data, errors) {
+                                console.log('error');
+                                console.log(data);
+                                console.log(errors);
+                            }
+                        })).then(function () {
+                        $('.addOrDeleteFriendButton').each(function () {
+                            let buttonId = parseInt($(this).attr('id'));
+                            console.log(myFriendsIds.includes(buttonId) || outgoingRequestsIds.includes(buttonId));
+                            if (myFriendsIds.includes(buttonId) || outgoingRequestsIds.includes(buttonId)) {
+                                console.log(1);
+                                $(this).children('.delete-friend').css('display', 'block');
+                            } else {
+                                $(this).children('.add-friend').css('display', 'block');
+                            }
+                        })
+                    })
+                    break;
+                case 'outgoingRequests':
+                    addButtons.css('display', 'none');
+                    deleteButtons.css('display', 'block');
+                    break;
+                case 'incomingRequests':
+                    addButtons.css('display', 'block');
+                    deleteButtons.css('display', 'none');
+                    break;
+            }
+        }
+    </script>
+    <script>
+        function bindScripts() {
+            $('.add-friend').on('click', function () {
+                let friend_id = $(this).parent().attr('id');
+                console.log(friend_id);
+                $.when($.ajax({
+                    type: "POST",
+                    url: "../api/friendship-list/" + friend_id + "/",
+                    dataType: "json",
+                    data: {
+                        owner_id: {{ user.id }},
+                        friend_id: $(this).parent().attr('id'),
+                    },
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                    },
+                    success: function (data) {
+                        chooseButton()
+                    },
+                    error: function (data, errors) {
+                        console.log(data);
+                        console.log(errors);
+                    }
+                })).then(function () {
+                    getAndPrintFriends()
+                })
+            })
+            $('.delete-friend').on('click', function () {
+                let friend_id = $(this).parent().attr('id');
+                console.log(friend_id);
+                $.when($.ajax({
+                    type: "DELETE",
+                    url: "../api/friendship-list/" + friend_id + "/",
+                    dataType: "json",
+                    data: {
+                        owner_id: {{ user.id }},
+                        friend_id: $(this).parent().attr('id'),
+                    },
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                    },
+                    success: function (data) {
+                        chooseButton()
+                    },
+                    error: function (data, errors) {
+                        console.log(data);
+                        console.log(errors);
+                    }
+                })).then(function () {
+                    getAndPrintFriends()
+                })
+            })
+        }
     </script>
 {% endblock %}

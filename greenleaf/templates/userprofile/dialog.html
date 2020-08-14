@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block styles %}
+    <style>
+
+        .profile-picture {
+            max-width: 32px;
+            max-height: 32px;
+            border: 1px solid black;
+            border-radius: 50%;
+        }
+
+        #mainContent {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #messagesAndPostForm {
+            display: flex;
+            flex-direction: column;
+            margin-right: 10px;
+            width: 100%;
+        }
+
+        #dialogsNavbar {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            background: rgba(245, 245, 245, 0.7);
+            border-radius: 15px;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-flow: row wrap;
+            align-items: flex-end;
+            overflow-y: auto;
+            min-height: 500px;
+            max-height: 600px;
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: row;
+            background: rgba(245, 245, 245, 1);
+            border-radius: 25px;
+            margin: 10px 0;
+        }
+
+        .message-container img {
+            margin: 10px 5px;
+        }
+
+        .message-container p {
+            margin: 10px;
+            word-wrap: break-word;
+        }
+
+        .add-post-form {
+            margin: 10px 0;
+        }
+
+        .post-content-button {
+            width: 50%;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .post-content-button svg {
+            margin: 0 5px -5px 5px;
+        }
+
+        .cancel-message-creation {
+            background: rgb(255, 40, 40);
+            border-radius: 0 0 0 25px;
+        }
+
+        .add-new-message {
+            background: rgb(40, 217, 27);
+            border-radius: 0 0 25px 0;
+        }
+
+        .post-buttons {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+        }
+
+        .post-content-text {
+            padding: 10px 20px 0 20px;
+            margin-bottom: -10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 25px 25px 0 0;
+            border: 2px solid black;
+            outline: none;
+            min-height: 50px;
+            overflow: hidden;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+        }
+
+        a {
+            background: rgba(245, 245, 245, 0.7);
+            text-decoration: none;
+            color: black;
+            padding: 10px 20px;
+            border-width: 1px 2px;
+            border-style: solid;
+            border-top-color: black;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        a:first-of-type {
+            border-width: 2px 2px 1px 2px;
+            border-radius: 25px 25px 0 0;
+        }
+
+        a:last-of-type {
+            border-width: 1px 2px 2px 2px;
+            border-radius: 0 0 25px 25px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="mainContent">
+        <div id="messagesAndPostForm">
+            <div class="messages"></div>
+            <div class="add-post-form">
+                <textarea id="newMessageText" userId="{{ userProfile.id }}" class="post-content-text"
+                          placeholder="Текст сообщения"></textarea>
+                <div class="post-buttons">
+                    <button class="post-content-button cancel-message-creation">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M9.036 7.976a.75.75 0 00-1.06 1.06L10.939 12l-2.963 2.963a.75.75 0 101.06 1.06L12 13.06l2.963 2.964a.75.75 0 001.061-1.06L13.061 12l2.963-2.964a.75.75 0 10-1.06-1.06L12 10.939 9.036 7.976z"></path>
+                            <path fill-rule="evenodd"
+                                  d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z"></path>
+                        </svg>
+                        Отмена
+                    </button>
+                    <button class="post-content-button add-new-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M17.28 9.28a.75.75 0 00-1.06-1.06l-5.97 5.97-2.47-2.47a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l6.5-6.5z"></path>
+                            <path fill-rule="evenodd"
+                                  d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z"></path>
+                        </svg>
+                        Отправить
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="dialogsNavbar"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(window).on('load', getAndPrintMessages())
+
+        function getAndPrintMessages() {
+            let messages, content = "";
+            $.ajax({
+                type: "GET",
+                url: "{% url 'api:dialog-list-with-friend-id' friend_id=friend.id %}",
+                success: function (data) {
+                    messages = data;
+                },
+                error: function (data, errors) {
+                    console.log('error');
+                    console.log(data);
+                    console.log(errors);
+                }
+            }).then(function () {
+                for (let message of messages) {
+                    console.log(message['message_from']);
+                    if (message['message_from'] === {{ user.id }}) {
+                        content += "" +
+                            "<div class='message-container'>" +
+                            "   <img class='profile-picture' src='{{ friend.profile_picture.url }}'>" +
+                            "   <p>" + message['text'] + "</p>" +
+                            "</div>"
+                    } else {
+                        content += "" +
+                            "<div class='message-container'>" +
+                            "   <p>" + message['text'] + "</p>" +
+                            "   <img class='profile-picture' src='{{ userProfile.profile_picture.url }}'>" +
+                            "</div>"
+                    }
+                }
+                $('.messages').html(content)
+            }).then(function () {
+                makeCorrectParagraphSize()
+            })
+        }
+    </script>
+    <script>
+
+        $('textarea').on('input', function () {
+            makeCorrectTextareaSize()
+        });
+
+        function makeCorrectTextareaSize() {
+            $('textarea').each(function () {
+                $(this).css('height', '0' + 'px');
+                $(this).css('height', $(this).prop('scrollHeight') + 'px');
+            })
+        }
+
+        $(window).on('load', function () {
+            makeCorrectParagraphSize()
+        })
+
+        $(window).on('resize', function () {
+            makeCorrectParagraphSize()
+            makeCorrectTextareaSize()
+        })
+
+        function makeCorrectParagraphSize() {
+            $('p').each(function () {
+                $(this).css('width', (parseInt($('textarea').css('width')) - 96).toString() + 'px')
+            })
+        }
+    </script>
+    <script>
+        $('.add-new-message').on('click', function () {
+            let postTextarea = $('#newMessageText');
+            if (postTextarea.val() !== '') {
+                $.ajax({
+                    type: "POST",
+                    url: "../api/dialog/" + {{ friend.id }} +"/",
+                    data: {
+                        message_from: {{ userProfile.id }},
+                        message_to: {{ friend.id }},
+                        text: postTextarea.val(),
+                    },
+                    dataType: "json",
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                    },
+                    success: function (data) {
+                        postTextarea.val('');
+                        console.log('добавили это сообщение к остальным');
+                        // добавить это сообщение ко всем вместо нового ajax запроса
+                        getAndPrintMessages()
+                    },
+                    error: function (data, errors) {
+                        console.log(data);
+                        console.log(errors);
+                    }
+                });
+            }
+        })
+        $('.cancel-message-creation').on('click', function () {
+            let postTextarea = $('#newMessageText');
+            postTextarea.val('');
+        })
+    </script>
+    <script>
+    /*
+
+    Этот скрипт должен отображать открытые пользователем диалоги
+
+        $(window).on('load', function () {
+            let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+            console.log(openedDialogs);
+            let content = ""
+            openedDialogs.forEach(function () {
+                content += "<a href='#'>" + $(this).attr('id') + "</a>"
+            })
+            $('#dialogsNavbar').html(content)
+        })
+
+     */
+    </script>
+    <script>
+    /*
+
+    Этот скрипт должен кореектно определять расположение панели с открытыми пользователем диалогами
+
+        function makeCorrect() {
+            let width = $(window).width();
+            if (width >= 850) {
+                $('.container').css('display', 'flex');
+            } else if (width >= 680) {
+                $('.container').css('display', 'flex');
+            } else {
+                $('.container').css('display', 'inline');
+            }
+        }
+            */
+    </script>
+{% endblock %}

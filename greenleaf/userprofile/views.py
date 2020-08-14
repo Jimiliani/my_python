@@ -3,9 +3,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
 
-from .models import GreenLeafUserProfile, PostProfile
+from .models import GreenLeafUserProfile, PostProfile, Friendship, Message
 
-from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm
+from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm
 
 
 def logoutView(request):
@@ -80,10 +80,29 @@ class SettingsView(View):
         if form.is_valid():
             userProfile.city = form.cleaned_data['city']
             userProfile.phone = form.cleaned_data['phone']
-            # userProfile.profile_picture = form.cleaned_data['profile_picture']
             userProfile.save()
             return redirect('/user/' + str(request.user.id))
         return render(request, self.template_name,
                       {'form': form,
                        'error': 'Произошла ошибка. Скорее всего выбранный формат фотографий не поддерживается.',
                        'userProfile': userProfile})
+
+
+def messagesView(request):
+    all_friendships = Friendship.objects.filter(owner=request.user)
+    confirmed_friends = Friendship.objects.none()
+    friend_users = []
+    for friend in all_friendships:
+        confirmed_friends = confirmed_friends.union(Friendship.objects.filter(owner=friend.friend, friend=friend.owner))
+    for friend in confirmed_friends:
+        if friend.owner.id != request.user.id:
+            friend_users.append(get_object_or_404(User, id=friend.owner.id))
+    return render(request, 'userprofile/messages.html', {'friends': friend_users})
+
+
+def dialogView(request, friend_id):
+    form = MessageCreationForm(request.POST)
+    return render(request, 'userprofile/dialog.html',
+                  {'friend': GreenLeafUserProfile.objects.get(id=friend_id),
+                   'userProfile': GreenLeafUserProfile.objects.get(id=request.user.id),
+                   'form': form})

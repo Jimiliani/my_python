@@ -9,4 +9,5 @@ urlpatterns = [
     path('friendship-list/', FriendshipList.as_view(), name='friendship-list'),
     path('friendship-list/<int:friend_id>/', FriendshipListWithFriendId.as_view(), name='friendship-list-with-friend-id'),
     path('like-list/<int:post_id>/', LikeList.as_view(), name='like-list'),
+    path('dialog/<str:friend_id>/', DialogView.as_view(), name='dialog-list-with-friend-id'),
 ]
