@@ -227,7 +227,7 @@
         })
 
         $('.typeOfUsers button').on('click', function () {
-            if ($('.active') !== $(this)) {
+            if ($('.active').attr('id') !== $(this).attr('id')) {
                 $('.active').toggleClass('active');
                 $(this).toggleClass('active');
                 getAndPrintFriends();

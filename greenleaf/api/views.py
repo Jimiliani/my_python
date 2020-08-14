@@ -84,14 +84,16 @@ class FriendshipList(APIView):
             elif request.GET['contentType'] == 'userprofiles':
                 user_items = GreenLeafUserProfile.objects.exclude(id=request.user.id)
         elif request.GET['requestType'] == 'outgoingRequests':
-            partly_friends = Friendship.objects.filter(owner_id=request.user.id).difference(confirmed_friends)
+            partly_friends = Friendship.objects.filter(owner=request.user).difference(confirmed_friends)
+            # partly_friends = all_friendships
+            # partly_friends = confirmed_friends
             for friend in partly_friends:
                 if request.GET['contentType'] == 'users':
                     user_items.append(get_object_or_404(User, id=friend.friend.id))
                 elif request.GET['contentType'] == 'userprofiles':
                     user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.friend))
         elif request.GET['requestType'] == 'incomingRequests':
-            partly_friends = Friendship.objects.filter(friend_id=request.user.id).difference(confirmed_friends)
+            partly_friends = Friendship.objects.filter(friend=request.user).difference(confirmed_friends)
             for friend in partly_friends:
                 if request.GET['contentType'] == 'users':
                     user_items.append(get_object_or_404(User, id=friend.owner.id))
