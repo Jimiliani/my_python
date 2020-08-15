@@ -89,14 +89,13 @@ class SettingsView(View):
 
 
 def messagesView(request):
-    all_friendships = Friendship.objects.filter(owner=request.user)
-    confirmed_friends = Friendship.objects.none()
+    friends = Friendship.get_friends(user=request.user)
     friend_users = []
-    for friend in all_friendships:
-        confirmed_friends = confirmed_friends.union(Friendship.objects.filter(owner=friend.friend, friend=friend.owner))
-    for friend in confirmed_friends:
-        if friend.owner.id != request.user.id:
-            friend_users.append(get_object_or_404(User, id=friend.owner.id))
+    for friend in friends:
+        if friend.user1.id == request.user.id:
+            friend_users.append(get_object_or_404(User, id=friend.user2.id))
+        else:
+            friend_users.append(get_object_or_404(User, id=friend.user1.id))
     return render(request, 'userprofile/messages.html', {'friends': friend_users})
 
 

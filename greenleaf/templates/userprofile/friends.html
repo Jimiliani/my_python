@@ -125,6 +125,26 @@
             getAndPrintFriends()
         })
 
+        function openTab() {
+            switch (localStorage.getItem('tab')) {
+                case 'myFriends':
+                    $('#myFriends').click();
+                    break
+                case 'allUsers':
+                    $('#allUsers').click();
+                    break
+                case 'outgoingRequests':
+                    $('#outgoingRequests').click();
+                    break
+                case 'incomingRequests':
+                    $('#incomingRequests').click();
+                    break
+                default:
+                    $('#myFriends').click();
+                    break
+            }
+        }
+
         function getAndPrintFriends() {
             let id = $('.active').attr('id');
             let friendsProfiles
@@ -147,6 +167,7 @@
                 printFriends(friendsProfiles);
                 chooseButton();
                 bindScripts();
+                openTab();
             })
         }
 
@@ -154,7 +175,7 @@
             let usersContent = $('#users');
             let content = "";
             console.log(profiles);
-            for (let profile of profiles){
+            for (let profile of profiles) {
                 content += "" +
                     "<div class='userCard'>" +
                     "   <div class='userCardImage'>" +
@@ -209,6 +230,7 @@
             if ($('.active').attr('id') !== $(this).attr('id')) {
                 $('.active').toggleClass('active');
                 $(this).toggleClass('active');
+                localStorage.setItem('tab', $(this).attr('id'));
                 getAndPrintFriends();
             }
         })
