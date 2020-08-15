@@ -46,6 +46,10 @@
         margin-top: 5px;
     }
 
+    #firstTimeHere {
+        padding-bottom: 20px;
+    }
+
 </style>
 <body>
 <div class="container">
@@ -70,9 +74,12 @@
             </ul>
         </div>
         {% if error %} {{ error }}<br> {% endif %}
-        <button type="submit" target="#">Готово</button>
-
+        <button type="submit">Готово</button>
+        <br>
     </form>
+    <div id="firstTimeHere">
+        <a href="{% url 'userprofile:register' %}">Впервые здесь?</a>
+    </div>
 </div>
 <script>
     $(window).on('load', (function () {

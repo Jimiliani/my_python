@@ -46,6 +46,10 @@
         margin-top: 5px;
     }
 
+    #alreadyRegistered{
+        padding-bottom: 20px;
+    }
+
 </style>
 <body>
 <div class="container">
@@ -60,6 +64,9 @@
         {% endfor %}
         <button type="submit">Готово</button>
     </form>
+<div id="alreadyRegistered">
+        <a href="{% url 'userprofile:login' %}">Уже зарегестрированы?</a>
+    </div>
 </div>
 <script>
     $(window).on('load', (function () {
