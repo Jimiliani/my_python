@@ -264,7 +264,6 @@
                 },
                 success: function (data) {
                     svg.toggleClass('liked');
-                    console.log($(element).get(0).lastChild.nodeValue)
                     if (svg.hasClass('liked')) {
                         $(element).get(0).lastChild.nodeValue = (parseInt($(element).get(0).lastChild.nodeValue) + 1).toString() + ' ' + $(element).get(0).lastChild.nodeValue.replace(/[0-9]/g, '');
                     } else {
@@ -288,7 +287,7 @@
                     url: "../api/like-list/" + id + "/",
                     dataType: "json",
                     success: function (data) {
-                        data = data.map((value) => (value.id))
+                        data = data.map((value) => (value.owner))
                         if (data.includes(parseInt({{ user.id }}))) {
                             elem.children('svg').addClass('liked');
                         }
