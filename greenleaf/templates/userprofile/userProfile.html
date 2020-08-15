@@ -250,9 +250,7 @@
     </script>
     <script>
         function toggleLiked(element) {
-            console.log($(element).attr('id'))
             let id = $(element).attr('id')
-            console.log(id)
             let svg = $(element).children('svg');
             $.ajax({
                 type: svg.hasClass('liked') ? "DELETE" : "POST",
@@ -265,7 +263,13 @@
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
                 },
                 success: function (data) {
-                    svg.toggleClass('liked')
+                    svg.toggleClass('liked');
+                    console.log($(element).get(0).lastChild.nodeValue)
+                    if (svg.hasClass('liked')) {
+                        $(element).get(0).lastChild.nodeValue = (parseInt($(element).get(0).lastChild.nodeValue) + 1).toString() + ' ' + $(element).get(0).lastChild.nodeValue.replace(/[0-9]/g, '');
+                    } else {
+                        $(element).get(0).lastChild.nodeValue = (parseInt($(element).get(0).lastChild.nodeValue) - 1).toString() + ' ' + $(element).get(0).lastChild.nodeValue.replace(/[0-9]/g, '');
+                    }
                 },
                 error: function (data, errors) {
                     console.log(data);
@@ -284,11 +288,11 @@
                     url: "../api/like-list/" + id + "/",
                     dataType: "json",
                     success: function (data) {
-                        console.log(data);
-                        if (!$.isEmptyObject(data)) {
-                            console.log($(this));
+                        data = data.map((value) => (value.id))
+                        if (data.includes(parseInt({{ user.id }}))) {
                             elem.children('svg').addClass('liked');
                         }
+                        elem.get(0).lastChild.nodeValue = (data.length).toString() + ' Понравилось'
                     },
                     error: function (data, errors) {
                         console.log(data);
@@ -432,7 +436,7 @@
                             "                            <path fill-rule=\"evenodd\"\n" +
                             "                                  d=\"M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z\"></path>\n" +
                             "                        </svg>\n" +
-                            "                        Понравилось\n" +
+                            "                        0 Понравилось\n" +
                             "                    </button>\n" + /*
                             "                    <button class=\"post-content-button comments\">\n" +
                             "                        <svg viewBox=\"0 0 16 16\" class=\"bi bi-chat-left-fill\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\">\n" +
