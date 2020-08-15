@@ -12,6 +12,7 @@
         #mainContent {
             display: flex;
             flex-direction: row;
+            min-width: 400px;
         }
 
         #messagesAndPostForm {
@@ -263,37 +264,37 @@
         })
     </script>
     <script>
-    /*
+        /*
 
-    Этот скрипт должен отображать открытые пользователем диалоги
+        Этот скрипт должен отображать открытые пользователем диалоги
 
-        $(window).on('load', function () {
-            let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
-            console.log(openedDialogs);
-            let content = ""
-            openedDialogs.forEach(function () {
-                content += "<a href='#'>" + $(this).attr('id') + "</a>"
+            $(window).on('load', function () {
+                let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+                console.log(openedDialogs);
+                let content = ""
+                openedDialogs.forEach(function () {
+                    content += "<a href='#'>" + $(this).attr('id') + "</a>"
+                })
+                $('#dialogsNavbar').html(content)
             })
-            $('#dialogsNavbar').html(content)
-        })
 
-     */
+         */
     </script>
     <script>
-    /*
+        /*
 
-    Этот скрипт должен кореектно определять расположение панели с открытыми пользователем диалогами
+        Этот скрипт должен кореектно определять расположение панели с открытыми пользователем диалогами
 
-        function makeCorrect() {
-            let width = $(window).width();
-            if (width >= 850) {
-                $('.container').css('display', 'flex');
-            } else if (width >= 680) {
-                $('.container').css('display', 'flex');
-            } else {
-                $('.container').css('display', 'inline');
+            function makeCorrect() {
+                let width = $(window).width();
+                if (width >= 850) {
+                    $('.container').css('display', 'flex');
+                } else if (width >= 680) {
+                    $('.container').css('display', 'flex');
+                } else {
+                    $('.container').css('display', 'inline');
+                }
             }
-        }
-            */
+                */
     </script>
 {% endblock %}

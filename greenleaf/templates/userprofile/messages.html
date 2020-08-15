@@ -33,7 +33,7 @@
             <p>У вас пока нет диалогов, добавьте друзей, чтобы они появились!</p>
         {% endif %}
         {% for friend in friends %}
-            <a id="{{ friend.id }}"
+            <a id="{{ friend.id }}" class="dialog"
                href="{% url 'userprofile:dialog' friend_id=friend.id %}">{{ friend.first_name }} {{ friend.last_name }}</a>
         {% endfor %}
     </div>
@@ -41,6 +41,13 @@
 
 {% block scripts %}
     <script>
+    /*
+
+    Этот скрипт должен добавлять диалог в открытые, чтобы на него потом можно было быстро переключиться, проблема в том,
+    что если мы например выйдем из аккаунта человека 1 и зайдем в аккаунт человека 2, то у нас автоматом будут открыты
+    диалоги, которых может в дейстительности не быть, можно этого избежать например добавив в localStorage id текущего
+    пользователя, а также для каждого открытого диалога делать ключ: значение в виде id: полное имя.
+
         $('a').on('click', function () {
             let dialogId = $(this).attr('id');
             if (localStorage.getItem('openedDialogs') === null) {
@@ -54,6 +61,19 @@
                 }
                 console.log(openedDialogs);
                 localStorage.setItem('openedDialogs', JSON.stringify(openedDialogs));
+            }
+        })
+
+     */
+    </script>
+    <script>
+        $(window).on('load', function () {
+            let dialogs = $('.dialog');
+            if (dialogs.length === 1) {
+                dialogs.css({
+                    'border-radius': '25px',
+                    'border-width': '2px'
+                });
             }
         })
     </script>

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
@@ -75,17 +76,16 @@ class SettingsView(View):
                                                     'userProfile': userProfile})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST, request.FILES)
         userProfile = get_object_or_404(GreenLeafUserProfile, id=request.user.id, user=request.user)
+        form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             userProfile.city = form.cleaned_data['city']
             userProfile.phone = form.cleaned_data['phone']
+            userProfile.profile_picture = form.cleaned_data['profile_picture']
             userProfile.save()
             return redirect('/user/' + str(request.user.id))
-        return render(request, self.template_name,
-                      {'form': form,
-                       'error': 'Произошла ошибка. Скорее всего выбранный формат фотографий не поддерживается.',
-                       'userProfile': userProfile})
+        return render(request, self.template_name, {'form': form,
+                                                    'userProfile': userProfile})
 
 
 def messagesView(request):

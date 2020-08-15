@@ -20,24 +20,25 @@
 {% endblock %}
 {% block body %}
     <div id="mainContent">
-        <form role="form" method="post">
+        <form action="{% url 'userprofile:settings' %}" role="form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <h2>Настройки</h2>
-            <div class="fieldWrapper">
-                <label for="id_city">Город: </label>
-                <input type="text" name="city" value="{{ userProfile.city }}"
-                       maxlength="50" autofocus="" id="id_city">
-            </div>
-            <div class="fieldWrapper">
-                <label for="id_phone">Телефон: </label>
-                <input type="text" name="phone" maxlength="16" autofocus="" value="{{ userProfile.phone }}"
-                       id="id_phone">
-            </div>
-            <div class="fieldWrapper">
-                <label for="id_profile_image">Изображение профиля: </label>
-                <input type="file" alt="Изображение профиля" name="profile_image" autofocus="" id="id_profile_image">
-            </div>
-            {% if error %} {{ error }}<br>{% endif %}
+            {{ form.as_p }}
+            {#            <div class="fieldWrapper">#}
+            {#                <label for="id_city">Город: </label>#}
+            {#                <input type="text" name="city" value="{{ userProfile.city }}"#}
+            {#                       maxlength="50" autofocus="" id="id_city">#}
+            {#            </div>#}
+            {#            <div class="fieldWrapper">#}
+            {#                <label for="id_phone">Телефон: </label>#}
+            {#                <input type="text" name="phone" maxlength="16" autofocus="" value="{{ userProfile.phone }}"#}
+            {#                       id="id_phone">#}
+            {#            </div>#}
+            {#            <div class="fieldWrapper">#}
+            {#                <label for="id_profile_image">Изображение профиля: </label>#}
+            {#                <input type="file" alt="Изображение профиля" name="profile_image" autofocus="" id="id_profile_image">#}
+            {#            </div>#}
+{#            {% if error %} {{ error }}<br>{% endif %}#}
             <button type="submit">Готово</button>
         </form>
     </div>
