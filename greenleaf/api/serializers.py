@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from userprofile.models import PostProfile, PostLike, PostComment, Friendship, GreenLeafUserProfile, Message
+from userprofile.models import PostProfile, PostLike, PostComment, Friendship, GreenLeafUserProfile, Message, \
+    FriendshipRequest
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -27,7 +28,18 @@ class FriendshipSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FriendshipRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendshipRequest
+        fields = '__all__'
+
+
 class GreenLeafUserProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
+
     class Meta:
         model = GreenLeafUserProfile
         fields = '__all__'

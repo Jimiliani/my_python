@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from userprofile.forms import MessageCreationForm
-from userprofile.models import GreenLeafUserProfile, Message
+from userprofile.models import GreenLeafUserProfile, Message, FriendshipRequest
 from .serializers import *
 
 
@@ -35,76 +35,72 @@ class PostListWithUserId(APIView):
 
 class FriendshipListWithFriendId(APIView):
     def get(self, request, friend_id):
-        try:
-            friends = Friendship.objects.get(owner_id=request.user.id, friend_id=friend_id)
-        except Friendship.DoesNotExist:
-            friends = []
-        serializer = FriendshipSerializer(friends, many=False)
-        return Response(serializer.data)
+        friend = User.objects.get(id=friend_id)
+        if Friendship.are_friends(request.user, friend) or FriendshipRequest.has_friend_request(user_from=request.user,
+                                                                                                user_to=friend):
+            return Response(True)
+        return Response(False)
 
     def post(self, request, friend_id):
-        _mutable = request.data._mutable
-        request.data._mutable = True
-        request.data['owner'] = request.user.id
-        request.data['friend'] = friend_id
-        request.data._mutable = _mutable
-        serializer = FriendshipSerializer(data=request.data)
+        friend = User.objects.get(id=friend_id)
+        if FriendshipRequest.has_friend_request(user_from=friend, user_to=request.user):
+            friendship_request = FriendshipRequest.objects.get(user_from=friend, user_to=request.user)
+            friendship_request.delete()
+            serializer = FriendshipSerializer(data=request.data)
+        else:
+            _mutable = request.data._mutable
+            request.data._mutable = True
+            request.data['user_from'] = request.user.id
+            request.data['user_to'] = friend_id
+            request.data._mutable = _mutable
+            serializer = FriendshipRequestSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, friend_id):
-        try:
-            friendship = Friendship.objects.get(owner_id=request.user.id, friend_id=friend_id)
+        friend = User.objects.get(id=friend_id)
+        if Friendship.are_friends(request.user, friend):
+            friendship = Friendship.get_friendship(user1=request.user, user2=friend)
             friendship.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Friendship.DoesNotExist:
-            return Response()
+            _mutable = request.data._mutable
+            request.data._mutable = True
+            request.data['user_from'] = friend_id
+            request.data['user_to'] = request.user.id
+            request.data._mutable = _mutable
+            serializer = FriendshipRequestSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+        else:
+            friendship_request = FriendshipRequest.objects.get(user_from=request.user, user_to=friend)
+            friendship_request.delete()
+        return Response(True)
 
 
 class FriendshipList(APIView):
     def get(self, request):
-        all_friendships = Friendship.objects.filter(owner=request.user)
-        confirmed_friends = Friendship.objects.none()
+        confirmed_friends = Friendship.get_friends(request.user)
         user_items = []
-        for friend in all_friendships:
-            confirmed_friends = confirmed_friends.union(
-                Friendship.objects.filter(owner=friend.friend, friend=friend.owner))
         if request.GET['requestType'] == 'myFriends':
             for friend in confirmed_friends:
-                if friend.owner.id != request.user.id:
-                    if request.GET['contentType'] == 'users':
-                        user_items.append(get_object_or_404(User, id=friend.owner.id))
-                    elif request.GET['contentType'] == 'userprofiles':
-                        user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.owner))
+                if friend.user1 == request.user:
+                    user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.user2))
+                else:
+                    user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.user1))
         elif request.GET['requestType'] == 'allUsers':
-            if request.GET['contentType'] == 'users':
-                user_items = User.objects.exclude(id=request.user.id)
-            elif request.GET['contentType'] == 'userprofiles':
-                user_items = GreenLeafUserProfile.objects.exclude(id=request.user.id)
+            user_items = GreenLeafUserProfile.objects.exclude(id=request.user.id)
         elif request.GET['requestType'] == 'outgoingRequests':
-            partly_friends = Friendship.objects.filter(owner=request.user).difference(confirmed_friends)
-            # partly_friends = all_friendships
-            # partly_friends = confirmed_friends
-            for friend in partly_friends:
-                if request.GET['contentType'] == 'users':
-                    user_items.append(get_object_or_404(User, id=friend.friend.id))
-                elif request.GET['contentType'] == 'userprofiles':
-                    user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.friend))
+            outgoing_requests = FriendshipRequest.objects.filter(user_from=request.user)
+            for friend in outgoing_requests:
+                user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.user_to))
         elif request.GET['requestType'] == 'incomingRequests':
-            partly_friends = Friendship.objects.filter(friend=request.user).difference(confirmed_friends)
-            for friend in partly_friends:
-                if request.GET['contentType'] == 'users':
-                    user_items.append(get_object_or_404(User, id=friend.owner.id))
-                elif request.GET['contentType'] == 'userprofiles':
-                    user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.owner))
+            incoming_requests = FriendshipRequest.objects.filter(user_to=request.user)
+            for friend in incoming_requests:
+                user_items.append(get_object_or_404(GreenLeafUserProfile, user=friend.user_from))
         else:
             return Response()
-        if request.GET['contentType'] == 'users':
-            serializer = UserSerializer(user_items, many=True)
-        else:
-            serializer = GreenLeafUserProfileSerializer(user_items, many=True)
+        serializer = GreenLeafUserProfileSerializer(user_items, many=True)
         return Response(serializer.data)
 
 

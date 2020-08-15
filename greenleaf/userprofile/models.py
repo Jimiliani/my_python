@@ -31,11 +31,41 @@ class GreenLeafUserProfile(models.Model):
 
 
 class Friendship(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
-    friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friends')
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1')
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2')
 
     def __str__(self):
-        return str(self.owner) + ' has friend ' + str(self.friend)
+        return str(self.user1) + ' and friend ' + str(self.user2) + 'are friends'
+
+    @classmethod
+    def are_friends(cls, user1, user2):
+        return bool(Friendship.objects.filter(user1=user1, user2=user2).union(
+            Friendship.objects.filter(user1=user2, user2=user1)))
+
+    @classmethod
+    def get_friendship(cls, user1, user2):
+        friendship = []
+        try:
+            friendship = cls.objects.get(user1=user1, user2=user2)
+        except Friendship.DoesNotExist:
+            friendship = cls.objects.get(user2=user1, user1=user2)
+        return friendship
+
+    @classmethod
+    def get_friends(cls, user):
+        return Friendship.objects.filter(user1=user).union(Friendship.objects.filter(user2=user))
+
+
+class FriendshipRequest(models.Model):
+    user_from = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_from')
+    user_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_to')
+
+    def __str__(self):
+        return str(self.user_from) + ' has friend ' + str(self.user_to)
+
+    @classmethod
+    def has_friend_request(cls, user_from, user_to):
+        return bool(FriendshipRequest.objects.filter(user_from=user_from, user_to=user_to))
 
 
 class PostProfile(models.Model):

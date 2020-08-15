@@ -308,12 +308,18 @@
                 url: "../api/friendship-list/" + {{ greenLeafUser.id }} +"/",
                 dataType: "json",
                 success: function (data) {
-                    $('.add-friend').css('display', 'none');
-                    $('.delete-friend').css('display', 'block');
+                    console.log(data)
+                    if (data) {
+                        $('.add-friend').css('display', 'none');
+                        $('.delete-friend').css('display', 'block');
+                    } else {
+                        $('.add-friend').css('display', 'block');
+                        $('.delete-friend').css('display', 'none');
+                    }
                 },
                 error: function (data, errors) {
-                    $('.add-friend').css('display', 'block');
-                    $('.delete-friend').css('display', 'none');
+                    console.log(data);
+                    console.log(errors);
                 }
             })
         }
@@ -324,8 +330,8 @@
                 url: "../api/friendship-list/" + {{ greenLeafUser.id }} +"/",
                 dataType: "json",
                 data: {
-                    owner_id: {{ user.id }},
-                    friend_id: {{ greenLeafUser.id }},
+                    user1: parseInt({{ user.id }}),
+                    user2: parseInt({{ greenLeafUser.id }}),
                 },
                 beforeSend: function (xhr, settings) {
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
