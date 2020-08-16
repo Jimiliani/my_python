@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,6 +11,7 @@ from .models import GreenLeafUserProfile, PostProfile, Friendship, Message
 from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm
 
 
+@login_required(login_url='/login/')
 def logoutView(request):
     logout(request)
     return redirect('/login')
@@ -27,6 +30,7 @@ def loginView(request):
     return render(request, 'userprofile/login.html', args)
 
 
+@login_required(login_url='/login/')
 def profileViewWithId(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user_profile = get_object_or_404(GreenLeafUserProfile, id=user_id)
@@ -35,6 +39,7 @@ def profileViewWithId(request, user_id):
     return render(request, 'userprofile/userProfile.html', args)
 
 
+@login_required(login_url='/login/')
 def friendsView(request):
     return render(request, 'userprofile/friends.html')
 
@@ -65,7 +70,8 @@ class RegisterView(View):
         return render(request, self.template_name, {'form': form})
 
 
-class SettingsView(View):
+class SettingsView(LoginRequiredMixin, View):
+    login_url = '/login/'
     form_class = GreenLeafUserProfileChangeForm
     template_name = 'userprofile/settings.html'
 
@@ -88,6 +94,7 @@ class SettingsView(View):
                                                     'userProfile': userProfile})
 
 
+@login_required(login_url='/login/')
 def messagesView(request):
     friends = Friendship.get_friends(user=request.user)
     friend_users = []
@@ -99,6 +106,7 @@ def messagesView(request):
     return render(request, 'userprofile/messages.html', {'friends': friend_users})
 
 
+@login_required(login_url='/login/')
 def dialogView(request, friend_id):
     form = MessageCreationForm(request.POST)
     return render(request, 'userprofile/dialog.html',

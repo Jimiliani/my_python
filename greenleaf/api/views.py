@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -9,7 +10,9 @@ from userprofile.models import GreenLeafUserProfile, Message, FriendshipRequest
 from .serializers import *
 
 
-class PostList(APIView):
+class PostList(LoginRequiredMixin, APIView):
+    login_url = '/login/'
+
     def get(self, request):
         posts = PostProfile.objects.all()
         serializer = PostSerializer(posts, many=True)
@@ -23,7 +26,7 @@ class PostList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PostListWithUserId(APIView):
+class PostListWithUserId(LoginRequiredMixin, APIView):
     def get(self, request, user_id):
         try:
             posts = PostProfile.objects.get(author__id=int(user_id))
@@ -33,7 +36,9 @@ class PostListWithUserId(APIView):
         return Response(serializer.data)
 
 
-class FriendshipListWithFriendId(APIView):
+class FriendshipListWithFriendId(LoginRequiredMixin, APIView):
+    login_url = '/login/'
+
     def get(self, request, friend_id):
         friend = User.objects.get(id=friend_id)
         if Friendship.are_friends(request.user, friend) or FriendshipRequest.has_friend_request(user_from=request.user,
@@ -78,7 +83,9 @@ class FriendshipListWithFriendId(APIView):
         return Response(True)
 
 
-class FriendshipList(APIView):
+class FriendshipList(LoginRequiredMixin, APIView):
+    login_url = '/login/'
+
     def get(self, request):
         confirmed_friends = Friendship.get_friends(request.user)
         user_items = []
@@ -104,7 +111,9 @@ class FriendshipList(APIView):
         return Response(serializer.data)
 
 
-class LikeList(APIView):
+class LikeList(LoginRequiredMixin, APIView):
+    login_url = '/login/'
+
     def get(self, request, post_id):
         try:
             likes = PostLike.objects.filter(post_id=post_id)
@@ -134,7 +143,8 @@ class LikeList(APIView):
             return Response()
 
 
-class DialogView(APIView):
+class DialogView(LoginRequiredMixin, APIView):
+    login_url = '/login/'
     form_class = MessageCreationForm
     template_name = 'userprofile/dialog.html'
 
