@@ -53,7 +53,6 @@
         $('a').on('click', function () {
             let dialogId = $(this).attr('id');
             if (localStorage.getItem('userId').toString() !== ({{ user.id }}).toString()) {
-                console.log('################localStorage cleared');
                 localStorage.clear();
                 localStorage.setItem('userId', {{ user.id }});
             }

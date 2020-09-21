@@ -127,6 +127,11 @@
             border-radius: 0 0 25px 25px;
         }
 
+        svg {
+            margin: 0 5px -5px 5px;
+        }
+
+
     </style>
 {% endblock %}
 
@@ -273,11 +278,32 @@
                 console.log(dialog);
                 let fullName = localStorage.getItem(dialog);
                 console.log(fullName)
-                content += "<a href=\"" + dialog + "\">" + fullName + "</a>"
+                content += "" +
+                    "<a id=\"" + dialog + "\" href=\"" + dialog + "\">" + fullName + "" +
+                    "   <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n" +
+                    "       <path d=\"M9.036 7.976a.75.75 0 00-1.06 1.06L10.939 12l-2.963 2.963a.75.75 0 101.06 1.06L12 13.06l2.963 2.964a.75.75 0 001.061-1.06L13.061 12l2.963-2.964a.75.75 0 10-1.06-1.06L12 10.939 9.036 7.976z\"></path>\n" +
+                    "       <path fill-rule=\"evenodd\"\n" +
+                    "                                  d=\"M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z\"></path>\n" +
+                    "   </svg>" +
+                    "</a>"
             })
             $('#dialogsNavbar').html(content)
         })
 
+    </script>
+    <script>
+        $('svg').on('click', function () {
+            let dialogId = $(this).parent().attr('id');
+            localStorage.setItem(dialogId.toString(), undefined);
+            let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+            console.log(openedDialogs);
+            // удалить dialogId из openedDialogs
+            // сделать так, чтобы я не переходил по ссылке
+            // удалять элемент из отображаемых, но так, чтобы внешний вид хороший сохранился
+            console.log(openedDialogs);
+            localStorage.setItem('openedDialogs', JSON.stringify(openedDialogs));
+
+        })
     </script>
     <script>
         /*
