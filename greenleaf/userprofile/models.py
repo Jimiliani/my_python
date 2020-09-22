@@ -9,6 +9,9 @@ class Profile(models.Model):
     phone = models.CharField(max_length=15, blank=True)
     friends = models.ManyToManyField('self', through='Friendship')
 
+    def __str__(self):
+        return self.user.__str__()
+
 
 # пользователь с меньшим id всегда будет friend1, с большим -- friend2
 class Friendship(models.Model):
