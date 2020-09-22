@@ -1,8 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.forms.widgets import Input
+from django.utils.translation import gettext_lazy as _
 
-from userprofile.models import Profile, Message
+from userprofile.models import Profile, Message, ProfilePost
 
 
 class GreenLeafUserCreationForm(UserCreationForm):
@@ -24,6 +26,13 @@ class GreenLeafUserProfileChangeForm(forms.ModelForm):
     class Meta:
         fields = ('city', 'phone', 'profile_picture')
         model = Profile
+        widgets = {
+            'profile_picture': Input(attrs={'type': 'file', 'name': 'profile_picture',
+                                            'accept': 'image/*', 'id': 'profile_picture'})
+        }
+        labels = {
+            'profile_picture': _('Выберите изображение')
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,3 +49,10 @@ class MessageCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['text'].label = 'Текст сообщения'
+
+
+class PostCreationForm(forms.ModelForm):
+    class Meta:
+        fields = ('post_text',)
+        model = ProfilePost
+

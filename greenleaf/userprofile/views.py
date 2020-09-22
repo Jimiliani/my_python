@@ -2,13 +2,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
 
 from .models import Profile, ProfilePost, Friendship, Message
 
-from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm
+from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm, PostCreationForm
 
 
 @login_required(login_url='/login/')
@@ -19,6 +20,8 @@ def logoutView(request):
 
 def loginView(request):
     args = {}
+    if request.user.is_authenticated:
+        return redirect('/user/' + str(request.user.id))
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password1']
@@ -30,13 +33,40 @@ def loginView(request):
     return render(request, 'userprofile/login.html', args)
 
 
-@login_required(login_url='/login/')
-def profileViewWithId(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user_profile = user.profile
-    args = {'greenLeafUser': user,
-            'userProfile': user_profile}
-    return render(request, 'userprofile/userProfile.html', args)
+# @login_required(login_url='/login/')
+# def profileViewWithId(request, user_id):
+#     user = get_object_or_404(User, id=user_id)
+#     user_profile = user.profile
+#     posts = ProfilePost.objects.get(author=user_profile)[:10]
+#     args = {'greenLeafUser': user,
+#             'userProfile': user_profile,
+#             'posts': posts}
+#     return render(request, 'userprofile/userProfile.html', args)
+#
+
+class ProfileViewWithPk(LoginRequiredMixin, View):
+    login_url = '/login/'
+    form_class = PostCreationForm
+    template_name = 'userprofile/userProfile.html'
+
+    def get(self, request, *args, **kwargs):
+        user = get_object_or_404(User, id=kwargs.pop('user_id'))
+        user_profile = user.profile
+        posts = ProfilePost.objects.filter(author=user_profile)[:10]
+        form = self.form_class(request.POST)
+        args = {'greenLeafUser': user,
+                'userProfile': user_profile,
+                'posts': posts,
+                'form': form}
+        return render(request, self.template_name, args)
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            ProfilePost.objects.create(author=request.user.profile,
+                                       post_text=form.cleaned_data['post_text'])
+            return JsonResponse(data={'text': form.cleaned_data['post_text']}, status=201)
+        return HttpResponse(form=form, status=400)
 
 
 @login_required(login_url='/login/')
@@ -71,13 +101,13 @@ class SettingsView(LoginRequiredMixin, View):
     template_name = 'userprofile/settings.html'
 
     def get(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(Profile, id=request.user.id, user=request.user)
+        userProfile = get_object_or_404(Profile, user=request.user)
         form = self.form_class(request.POST, instance=userProfile)
         return render(request, self.template_name, {'form': form,
                                                     'userProfile': userProfile})
 
     def post(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(Profile, id=request.user.id, user=request.user)
+        userProfile = get_object_or_404(Profile, user=request.user)
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             userProfile.city = form.cleaned_data['city']

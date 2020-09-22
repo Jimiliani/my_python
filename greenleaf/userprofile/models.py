@@ -4,7 +4,7 @@ from django.db import models
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    profile_picture = models.ImageField(default='/pictures/default.png', upload_to='pictures/')
+    profile_picture = models.ImageField(default='/pictures/default.png', upload_to='pictures/', blank=True)
     city = models.CharField(max_length=63, blank=True)
     phone = models.CharField(max_length=15, blank=True)
     friends = models.ManyToManyField('self', through='Friendship')
@@ -22,17 +22,13 @@ class Friendship(models.Model):
 
 
 class ProfilePost(models.Model):
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='author')
     post_text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)
+    like = models.ManyToManyField(Profile, related_name='like')
 
-
-class PostLike(models.Model):
-    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.post.id) + ' post id ' + str(self.owner) + ' like owner '
+    class Meta:
+        ordering = ['-publication_date']
 
 
 class PostComment(models.Model):
