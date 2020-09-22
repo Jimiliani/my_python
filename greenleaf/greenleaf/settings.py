@@ -77,7 +77,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'greenleaf',
         'USER': 'greenleaf_admin',
-        'PASSWORD': '',
+        'PASSWORD': 'greenleaf_admin',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }

@@ -1,4 +1,4 @@
-#!/home/dima/my_python/greenleaf/venv/bin/python
+#!/home/dima/my_python/greenleaf/venv/bin/python3
 # When the django-admin.py deprecation ends, remove this script.
 import warnings
 

@@ -58,7 +58,8 @@
         <h2>Регистрация</h2>
         {% for field in form %}
             <div class="fieldWrapper">
-                {{ field.label_tag }} {{ field }}
+                {{ field.label_tag }} <br>
+                {{ field }}
                 {{ field.errors }}
             </div>
         {% endfor %}

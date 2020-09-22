@@ -7,13 +7,13 @@ class Profile(models.Model):
     profile_picture = models.ImageField(default='/pictures/default.png', upload_to='pictures/')
     city = models.CharField(max_length=63, blank=True)
     phone = models.CharField(max_length=15, blank=True)
-    friends = models.ManyToManyField('self', on_delete=models.CASCADE, through='Friendship')
+    friends = models.ManyToManyField('self', through='Friendship')
 
 
 # пользователь с меньшим id всегда будет friend1, с большим -- friend2
 class Friendship(models.Model):
-    friend1 = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    friend2 = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    friend1 = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='friend1')
+    friend2 = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='friend2')
     friend1_agree = models.BooleanField(default=False)
     friend2_agree = models.BooleanField(default=False)
 
