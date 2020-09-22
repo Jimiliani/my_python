@@ -1,7 +1,8 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -33,17 +34,6 @@ def loginView(request):
     return render(request, 'userprofile/login.html', args)
 
 
-# @login_required(login_url='/login/')
-# def profileViewWithId(request, user_id):
-#     user = get_object_or_404(User, id=user_id)
-#     user_profile = user.profile
-#     posts = ProfilePost.objects.get(author=user_profile)[:10]
-#     args = {'greenLeafUser': user,
-#             'userProfile': user_profile,
-#             'posts': posts}
-#     return render(request, 'userprofile/userProfile.html', args)
-#
-
 class ProfileViewWithPk(LoginRequiredMixin, View):
     login_url = '/login/'
     form_class = PostCreationForm
@@ -67,6 +57,22 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                                        post_text=form.cleaned_data['post_text'])
             return JsonResponse(data={'text': form.cleaned_data['post_text']}, status=201)
         return HttpResponse(form=form, status=400)
+
+    def patch(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        post = get_object_or_404(ProfilePost, id=body['post_id'])
+        if body['action_type'] == 'add':
+            print('add')
+            post.like.add(request.user.profile)
+        elif body['action_type'] == 'remove':
+            print('remove')
+            post.like.remove(request.user.profile)
+        print('все хорошо')
+        print(request.user.profile in post.like.all())
+        print(post.like.count())
+        print('все хорошо')
+        return JsonResponse(data={'is_liked': request.user.profile in post.like.all(),
+                                  'count_of_likes': post.like.count()})
 
 
 @login_required(login_url='/login/')
