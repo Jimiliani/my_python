@@ -10,6 +10,7 @@ class Profile(models.Model):
     friends = models.ManyToManyField('self', on_delete=models.CASCADE, through='Friendship')
 
 
+# пользователь с меньшим id всегда будет friend1, с большим -- friend2
 class Friendship(models.Model):
     friend1 = models.ForeignKey(Profile, on_delete=models.CASCADE)
     friend2 = models.ForeignKey(Profile, on_delete=models.CASCADE)

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from userprofile.models import GreenLeafUserProfile, Message
+from userprofile.models import Profile, Message
 
 
 class GreenLeafUserCreationForm(UserCreationForm):
@@ -12,24 +12,24 @@ class GreenLeafUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].label = 'Email Address'
+        self.fields['email'].label = 'Адрес электронной почты'
         self.fields['email'].required = True
-        self.fields['first_name'].label = 'First name'
+        self.fields['first_name'].label = 'Имя'
         self.fields['first_name'].required = True
-        self.fields['last_name'].label = 'Last name'
+        self.fields['last_name'].label = 'Фамилия'
         self.fields['last_name'].required = True
 
 
 class GreenLeafUserProfileChangeForm(forms.ModelForm):
     class Meta:
         fields = ('city', 'phone', 'profile_picture')
-        model = GreenLeafUserProfile
+        model = Profile
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['city'].label = 'City'
-        self.fields['phone'].label = 'Phone'
-        self.fields['profile_picture'].label = 'Profile picture'
+        self.fields['city'].label = 'Город'
+        self.fields['phone'].label = 'Номер телефона'
+        self.fields['profile_picture'].label = 'Фотография профиля'
 
 
 class MessageCreationForm(forms.ModelForm):

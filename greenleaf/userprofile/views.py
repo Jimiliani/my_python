@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
 
-from .models import GreenLeafUserProfile, PostProfile, Friendship, Message
+from .models import Profile, ProfilePost, Friendship, Message
 
 from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm
 
@@ -33,7 +33,7 @@ def loginView(request):
 @login_required(login_url='/login/')
 def profileViewWithId(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    user_profile = get_object_or_404(GreenLeafUserProfile, id=user_id)
+    user_profile = user.profile
     args = {'greenLeafUser': user,
             'userProfile': user_profile}
     return render(request, 'userprofile/userProfile.html', args)
@@ -55,16 +55,11 @@ class RegisterView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(username=form.cleaned_data['username'],
-                                            email=form.cleaned_data['email'],
-                                            password=form.cleaned_data['password1'],
-                                            first_name=form.cleaned_data['first_name'],
-                                            last_name=form.cleaned_data['last_name'])
-            userProfile = GreenLeafUserProfile.objects.create(id=user.id,
-                                                              user=user,
-                                                              city='',
-                                                              phone='')
-            userProfile.save()
+            User.objects.create_user(username=form.cleaned_data['username'],
+                                     email=form.cleaned_data['email'],
+                                     password=form.cleaned_data['password1'],
+                                     first_name=form.cleaned_data['first_name'],
+                                     last_name=form.cleaned_data['last_name'])
             return redirect('userprofile:login')
 
         return render(request, self.template_name, {'form': form})
@@ -76,13 +71,13 @@ class SettingsView(LoginRequiredMixin, View):
     template_name = 'userprofile/settings.html'
 
     def get(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(GreenLeafUserProfile, id=request.user.id, user=request.user)
+        userProfile = get_object_or_404(Profile, id=request.user.id, user=request.user)
         form = self.form_class(request.POST, instance=userProfile)
         return render(request, self.template_name, {'form': form,
                                                     'userProfile': userProfile})
 
     def post(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(GreenLeafUserProfile, id=request.user.id, user=request.user)
+        userProfile = get_object_or_404(Profile, id=request.user.id, user=request.user)
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             userProfile.city = form.cleaned_data['city']
@@ -110,6 +105,6 @@ def messagesView(request):
 def dialogView(request, friend_id):
     form = MessageCreationForm(request.POST)
     return render(request, 'userprofile/dialog.html',
-                  {'friend': GreenLeafUserProfile.objects.get(id=friend_id),
-                   'userProfile': GreenLeafUserProfile.objects.get(id=request.user.id),
+                  {'friend': Profile.objects.get(id=friend_id),
+                   'userProfile': Profile.objects.get(id=request.user.id),
                    'form': form})
