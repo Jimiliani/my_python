@@ -41,36 +41,75 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(User, id=kwargs.pop('user_id'))
+        are_friends = 'None'
+        if user != request.user:
+            try:
+                Friendship.objects.get(friend1__user_id=min(int(user.id), int(request.user.id)),
+                                       friend2__user_id=max(int(user.id), int(request.user.id)))
+                are_friends = 'True'
+            except Friendship.DoesNotExist:
+                are_friends = 'False'
+        print(request.GET)
+        if request.GET and request.GET['request_type'] == 'are_friends':
+            return JsonResponse(data={'are_friends': are_friends})
+
         user_profile = user.profile
         posts = ProfilePost.objects.filter(author=user_profile)[:10]
         form = self.form_class(request.POST)
+
         args = {'greenLeafUser': user,
                 'userProfile': user_profile,
                 'posts': posts,
-                'form': form}
+                'form': form,
+                'are_friends': are_friends}
         return render(request, self.template_name, args)
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            ProfilePost.objects.create(author=request.user.profile,
-                                       post_text=form.cleaned_data['post_text'])
-            return JsonResponse(data={'text': form.cleaned_data['post_text']}, status=201)
-        return HttpResponse(form=form, status=400)
+        print(request.POST)
+        if request.POST['request_type'] == 'add_friend':
+            print(request.POST['user'])
+            try:
+                friendship = Friendship.objects.get(
+                    friend1__user_id=min(int(request.POST['user']), int(request.user.id)),
+                    friend2__user_id=max(int(request.POST['user']), int(request.user.id)))
+                friendship.friend1_agree = True
+                friendship.friend2_agree = True
+                friendship.save()
+            except Friendship.DoesNotExist:
+                if int(request.POST['user']) > int(request.user.id):
+                    Friendship.objects.create(friend1=request.user.profile,
+                                              friend2=User.objects.get(id=request.POST['user']).profile,
+                                              friend1_agree=True)
+
+                else:
+                    Friendship.objects.create(friend1=User.objects.get(id=request.POST['user']).profile,
+                                              friend2=request.user.profile,
+                                              friend2_agree=True)
+            return HttpResponse('success')
+        elif request.POST['request_type'] == 'delete_friend':
+            print(request.POST['user'])
+            friendship = Friendship.objects.get(
+                friend1__user_id=min(int(request.POST['user']), int(request.user.id)),
+                friend2__user_id=max(int(request.POST['user']), int(request.user.id)))
+            friendship.friend1_agree = False
+            friendship.friend2_agree = False
+            friendship.save()
+            return HttpResponse('success')
+        else:
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                ProfilePost.objects.create(author=request.user.profile,
+                                           post_text=form.cleaned_data['post_text'])
+                return JsonResponse(data={'text': form.cleaned_data['post_text']}, status=201)
+            return HttpResponse(form=form, status=400)
 
     def patch(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
         post = get_object_or_404(ProfilePost, id=body['post_id'])
         if body['action_type'] == 'add':
-            print('add')
             post.like.add(request.user.profile)
         elif body['action_type'] == 'remove':
-            print('remove')
             post.like.remove(request.user.profile)
-        print('все хорошо')
-        print(request.user.profile in post.like.all())
-        print(post.like.count())
-        print('все хорошо')
         return JsonResponse(data={'is_liked': request.user.profile in post.like.all(),
                                   'count_of_likes': post.like.count()})
 

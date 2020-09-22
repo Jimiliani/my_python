@@ -159,7 +159,6 @@
                     </svg>
                     Добавить в друзья
                 </button>
-
                 <button class="button delete-friend">
                     <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-dash-circle"
                          fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -288,72 +287,24 @@
         }
     </script>
     <script>
-        {#function toggleLiked(element) {#}
-        {#    let id = $(element).attr('id')#}
-        {#    let svg = $(element).children('svg');#}
-        {#    $.ajax({#}
-        {#        type: svg.hasClass('liked') ? "DELETE" : "POST",#}
-        {#        url: "../api/like-list/" + id + "/",#}
-        {#        dataType: "json",#}
-        {#        data: {#}
-        {#            post_id: id#}
-        {#        },#}
-        {#        beforeSend: function (xhr, settings) {#}
-        {#            xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');#}
-        {#        },#}
-        {#        success: function (data) {#}
-        {#            svg.toggleClass('liked');#}
-        {#            if (svg.hasClass('liked')) {#}
-        {#                $(element).get(0).lastChild.nodeValue = (parseInt($(element).get(0).lastChild.nodeValue) + 1).toString() + ' ' + $(element).get(0).lastChild.nodeValue.replace(/[0-9]/g, '');#}
-        {#            } else {#}
-        {#                $(element).get(0).lastChild.nodeValue = (parseInt($(element).get(0).lastChild.nodeValue) - 1).toString() + ' ' + $(element).get(0).lastChild.nodeValue.replace(/[0-9]/g, '');#}
-        {#            }#}
-        {#        },#}
-        {#        error: function (data, errors) {#}
-        {#            console.log(data);#}
-        {#            console.log(errors);#}
-        {#        }#}
-        {#    })#}
-        {# }#}
-
-        function putLikes() {
-            $('.like').each(function () {
-                let id = $(this).attr('id');
-                let elem = $(this);
-                console.log($(this));
-                $.ajax({
-                    type: "GET",
-                    url: "../api/like-list/" + id + "/",
-                    dataType: "json",
-                    success: function (data) {
-                        data = data.map((value) => (value.owner))
-                        if (data.includes(parseInt({{ user.id }}))) {
-                            elem.children('svg').addClass('liked');
-                        }
-                        elem.get(0).lastChild.nodeValue = (data.length).toString() + ' Понравилось'
-                    },
-                    error: function (data, errors) {
-                        console.log(data);
-                        console.log(errors);
-                    }
-                })
-            })
-        }
-    </script>
-    <script>
         $(document).on('load', chooseButton())
 
         function chooseButton() {
+            console.log('called');
             $.ajax({
                 type: "GET",
-                url: "../api/friendship-list/" + {{ greenLeafUser.id }} +"/",
+                url: window.location.href,
+                data: {
+                    request_type: 'are_friends',
+                },
                 dataType: "json",
                 success: function (data) {
                     console.log(data)
-                    if (data) {
+                    console.log(data.are_friends)
+                    if (data.are_friends === 'True') {
                         $('.add-friend').css('display', 'none');
                         $('.delete-friend').css('display', 'block');
-                    } else {
+                    } else if (data.are_friends === 'False') {
                         $('.add-friend').css('display', 'block');
                         $('.delete-friend').css('display', 'none');
                     }
@@ -368,11 +319,11 @@
         $('.add-friend').on('click', function () {
             $.ajax({
                 type: "POST",
-                url: "../api/friendship-list/" + {{ greenLeafUser.id }} +"/",
-                dataType: "json",
+                url: window.location.href,
+                dataType: "text",
                 data: {
-                    user1: parseInt({{ user.id }}),
-                    user2: parseInt({{ greenLeafUser.id }}),
+                    request_type: 'add_friend',
+                    user: {{ greenLeafUser.id }},
                 },
                 beforeSend: function (xhr, settings) {
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
@@ -388,12 +339,12 @@
         })
         $('.delete-friend').on('click', function () {
             $.ajax({
-                type: "DELETE",
-                url: "../api/friendship-list/" + {{ greenLeafUser.id }} +"/",
-                dataType: "json",
+                type: "POST",
+                url: window.location.href,
+                dataType: "text",
                 data: {
-                    owner_id: {{ user.id }},
-                    friend_id: {{ greenLeafUser.id }}
+                    request_type: 'delete_friend',
+                    user: {{ greenLeafUser.id }},
                 },
                 beforeSend: function (xhr, settings) {
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
