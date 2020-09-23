@@ -41,6 +41,12 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(User, id=kwargs.pop('user_id'))
+        if request.GET and request.GET['request_type'] == 'get_extra_posts':
+            print('extra_posts')
+            posts = ProfilePost.objects.filter(author=user.profile)[
+                    int(request.GET['posts_from']):int(request.GET['posts_to'])]
+            posts = [post.serialize_extra_posts(request.user.profile) for post in posts.all()]
+            return JsonResponse(data={'posts': posts})
         are_friends = 'None'
         if user != request.user:
             try:
@@ -49,19 +55,23 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                 are_friends = 'True'
             except Friendship.DoesNotExist:
                 are_friends = 'False'
-        print(request.GET)
         if request.GET and request.GET['request_type'] == 'are_friends':
             return JsonResponse(data={'are_friends': are_friends})
-
         user_profile = user.profile
-        posts = ProfilePost.objects.filter(author=user_profile)[:10]
+        posts = ProfilePost.objects.filter(author=user_profile)
+        too_many_posts = False
+        if posts.count() > 10:
+            too_many_posts = True
+        posts = posts[:10]
+
         form = self.form_class(request.POST)
 
         args = {'greenLeafUser': user,
                 'userProfile': user_profile,
                 'posts': posts,
                 'form': form,
-                'are_friends': are_friends}
+                'are_friends': are_friends,
+                'too_many_posts': too_many_posts}
         return render(request, self.template_name, args)
 
     def post(self, request, *args, **kwargs):

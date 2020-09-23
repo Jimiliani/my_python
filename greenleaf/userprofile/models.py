@@ -30,6 +30,15 @@ class ProfilePost(models.Model):
     class Meta:
         ordering = ['-publication_date']
 
+    def serialize_extra_posts(self, user_profile):
+        return {
+            'id': self.id,
+            'post_text': self.post_text,
+            'publication_date': self.publication_date,
+            'is_liked_by_user': (user_profile in self.like.all()),
+            'like_count': self.like.count()
+        }
+
 
 class PostComment(models.Model):
     related_post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
