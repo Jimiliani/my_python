@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div id="sideShowItemsContainer" class="container mt-5 mb-5">
+
+    </div>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Завершение покупки</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label>
+                        Введите ваш адрес электронной почты:
+                        <input id="email" type="email">
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                    <button type="button" onclick="payForItems()" class="btn btn-success">Оплатить товары</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(window).on('load', getAndSideShowItems);
+
+        function payForItems() {
+            let items = parseLocalStorageItems();
+            let itemsWithCount = []
+            $.each(items, function () {
+                let item = {
+                    'id': this['itemId'],
+                    'size': this['size'],
+                    'count': $('#' + this['itemId']).prev().children('div').children('.count').val()
+                }
+                itemsWithCount.push(item);
+            });
+            console.log($('input[type=hidden]').val());
+            $.ajax({
+                url: '../pay/',
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'email': $('#email').val(),
+                    'items': JSON.stringify(itemsWithCount),
+                },
+                success: function () {
+                    console.log('success');
+                }
+            });
+            localStorage.clear();
+            window.location.href = '../'
+        }
+
+        function parseLocalStorageItems() {
+            let bag = [];
+            if (localStorage.getItem('bag')) {
+                bag = JSON.parse(localStorage.getItem('bag'));
+            }
+            return bag;
+        }
+
+        function getAndSideShowItems() {
+            let bag = parseLocalStorageItems();
+            let items = [];
+            $.each(bag, function () {
+                let item = this;
+                $.ajax({
+                    url: '/item_detail_slim/' + parseInt(this['itemId']),
+                    type: "GET",
+                    dataType: 'json',
+                    data: {
+                        'size': this['size'],
+                    },
+                    success: function (itemData) {
+                        itemData['size'] = item['size'];
+                        itemData['id'] = item['itemId'];
+                        items.push(itemData);
+                    }
+                });
+            })
+            if (bag.length > 0) {
+                $(document).ajaxStop(function () {
+                    items.sort((a, b) => (a['name'] > b['name']) ? 1 : ((a['name'] < b['name']) ? -1 : 0));
+                    sideShowItems(items)
+                })
+            } else {
+                sideShowItems(items)
+            }
+        }
+
+        function removeItemFromBag(selected_item) {
+            let itemId = $(selected_item).attr('id');
+            let size = $(selected_item).attr('data-size');
+            console.log(itemId);
+            console.log(size);
+            let newBagValue = [];
+            for (let item of JSON.parse(localStorage.getItem('bag'))) {
+                if (item['itemId'] != itemId || item['size'] !== size) {
+                    newBagValue.push(item);
+                }
+            }
+            localStorage.setItem('bag', JSON.stringify(newBagValue));
+            getAndSideShowItems();
+        }
+
+        function sideShowItems(items) {
+            let content = " ";
+            for (let item of items) {
+                content += "<div>\n" +
+                    "            <div class=\"card mb-3\" style=\"max-width: 1000px;\">\n" +
+                    "                <div class=\"row no-gutters\">\n" +
+                    "                    <div class=\"col-md-4\">\n" +
+                    "                        <img src=\"" + item['image'] + "\" target=\"" + item['id'] + "\" class=\"card-img\" alt=\"Изображение товара\" onclick=\"detail($(this))\">\n" +
+                    "                    </div>\n" +
+                    "                    <div class=\"col-md-6\">\n" +
+                    "                        <div class=\"card-body information \">\n" +
+                    "                            <h5 class=\"card-title\"><strong>" + item['name'] + "</strong></h5>\n" +
+                    "                            <p class=\"card-text price \"><strong>Цена: " + item['price'] + "₽</strong></p>\n" +
+                    "                            <p class=\"card-text\"><strong>Размер: " + item['size'] + "</strong></p>\n" +
+                    "                            <p class=\"card-text \"><strong>Выберите количество:</strong></p>\n" +
+                    "                            <input class=\"card-text count \" type=\"number\" value=\"1\" min=\"1\" max=\"" + item['count'] + "\"" +
+                    "                               onkeyup=\"$(this).val(Math.max(Math.min($(this).val(),$(this).attr('max')),$(this).attr('min')))\" " +
+                    "                               onchange=\"calculatePrice()\" >\n" +
+                    "                        </div>\n" +
+                    "                    </div>\n" +
+                    "                    <div class=\"col-md-2\" style='background-color: #a80000; cursor: pointer'" +
+                    "                         onmouseenter=\"$(this).css('background-color', '#d10000')\"" +
+                    "                         onmouseleave=\"$(this).css('background-color', '#a80000')\"" +
+                    "                         id=\"" + item['id'] + "\" data-size=\"" + item['size'] + "\" onclick=\" removeItemFromBag(this)\">" +
+                    "                        <div class=\"card-body\" style='text-align: center; min-width: 100%; min-height: 100%'>\n" +
+                    "                            <svg style='width: 64px; height: 64px'viewBox=\"0 0 16 16\" class=\"bi bi-x\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                    "                               <path fill-rule=\"evenodd\" d=\"M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z\"/>\n" +
+                    "                               <path fill-rule=\"evenodd\" d=\"M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z\"/>\n" +
+                    "                            </svg>\n" +
+                    "                        </div> " +
+                    "                    </div>\n" +
+                    "                </div>\n" +
+                    "            </div>\n" +
+                    "        </div>";
+            }
+            content += "<div class=\"border\" style=\"background-color: #ebebeb;margin-bottom: 10px\">\n" +
+                "           <h3 class=\"total-price\" style='margin: 10px;'>Итоговая сумма: <span>0</span>₽</h3>" +
+                "           <button type=\"button\" class=\"btn btn-success btn-lg m-3\" data-toggle=\"modal\" data-target=\"#exampleModal\">Перейти к оплате</button>\n" +
+                "       </div>";
+            $('#sideShowItemsContainer').html(content);
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            let totalPrice = 0;
+            for (let div of $('.information')) {
+                totalPrice += parseInt($(div).children('.price').text().split(' ')[1]) * parseInt($(div).children('.count').val());
+            }
+            $('.total-price span').text(totalPrice);
+
+        }
+
+    </script>
+    <script>
+        function detail(div) {
+            console.log(div);
+            let pk = div.attr('target');
+            console.log(pk);
+            window.location.href = '../detail/' + pk.toString()
+        }
+    </script>
+{% endblock %}

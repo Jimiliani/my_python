@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="container mt-5 mb-5">
+        <div id="borderBox" class="border" style="background-color: #ebebeb">
+            <div id="flexBox"
+                 style="display: flex; flex-direction: row; justify-content: flex-start; margin-right: auto; margin-left: auto">
+                <div id="genderSelector"
+                     style="display: flex; flex-direction: column; justify-content: flex-start; margin-right: 10px;margin-left: 10px">
+                    <h6 style="letter-spacing: 1px">Выберите пол</h6>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="M" id="genderCheck1">
+                        <label class="form-check-label" for="genderCheck1">
+                            Мужской
+                        </label>
+                    </div>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="F" id="genderCheck2">
+                        <label class="form-check-label" for="genderCheck2">
+                            Женский
+                        </label>
+                    </div>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="U" id="genderCheck3">
+                        <label class="form-check-label" for="genderCheck3">
+                            Унисекс
+                        </label>
+                    </div>
+                </div>
+                <div id="itemTypeSelector"
+                     style="display: flex; flex-direction: column; justify-content: flex-start; margin-right: 10px;margin-left: 10px">
+                    <h6 style="letter-spacing: 1px">Выберите тип одежды</h6>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="Outwear"
+                               id="itemTypeCheck1">
+                        <label class="form-check-label" for="itemTypeCheck1">
+                            Верхняя одежда
+                        </label>
+                    </div>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="Underwear"
+                               id="itemTypeCheck2">
+                        <label class="form-check-label" for="itemTypeCheck2">
+                            Нижняя одежда
+                        </label>
+                    </div>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="Shoe" id="itemTypeCheck3">
+                        <label class="form-check-label" for="itemTypeCheck3">
+                            Обувь
+                        </label>
+                    </div>
+                    <div class="form-check" style="letter-spacing: 1px">
+                        <input class="form-check-input" type="checkbox" value="Accessory" id="itemTypeCheck4">
+                        <label class="form-check-label" for="itemTypeCheck4">
+                            Аксессуары
+                        </label>
+                    </div>
+                </div>
+                <div id="sliderDiv"
+                     style="display: flex; flex-direction: column; justify-content: flex-start; margin-right: 10px;margin-left: 10px; max-width: 500px">
+                    <h6 style="letter-spacing: 1px">Выберите ценовой диапазон</h6>
+                    <div id="slider" style="margin-left: 10px; margin-right: 10px"></div>
+                    <div style="display: flex; flex-direction: row; justify-content: flex-start; margin-top: 10px">
+                        <input title="Formatted number" id="inputFormatFrom"
+                               style="width: 25%;border-radius: 25px 0 0 25px; border-width: 2px; outline: none"
+                               value="0">
+                        <span style="margin-left: auto;margin-right: auto">—</span>
+                        <input title="Formatted number" id="inputFormatTo"
+                               style="width: 25%; border-radius: 0 25px 25px 0;border-width: 2px; outline: none"
+                               value="19990">
+                    </div>
+                </div>
+                <div id="sortDiv"
+                     style="display: flex; flex-direction: column; justify-content: flex-start; margin-right: 10px;margin-left: 10px">
+                    <h6 style="letter-spacing: 1px"> Тип сортировки
+                        <select id="sortBy">
+                            <option id="option1">По возрастанию цены</option>
+                            <option id="option2">По убыванию цены</option>
+                            <option id="option3" selected>По наименованию товара</option>
+                        </select>
+                    </h6>
+                </div>
+            </div>
+        </div>
+        <div id="filteredItems">
+
+        </div>
+    </div>
+    <script>
+        $(window).on('load', function () {
+            $('#searchBar input').val(localStorage.getItem('searchInputValue'));
+            $('#navbar-form input').val(localStorage.getItem('searchInputValue'));
+            $('#' + localStorage.getItem('selectId')).prop('selected', true);
+            changeCheckboxes();
+            getAndShowItems();
+        });
+
+        $(window).on('hashchange', changeCheckboxes);
+
+        function changeCheckboxes() {
+            $('.form-check-input').each(function () {
+                this.checked = false;
+                if (window.location.hash === '#outwear') {
+                    if (['M', 'F', 'U', 'Outwear'].includes($(this).val())) {
+                        this.checked = true;
+                        localStorage.setItem(this.id, 'checked');
+                    } else {
+                        this.checked = false;
+                        localStorage.setItem(this.id, '');
+                    }
+                } else if (window.location.hash === '#underwear') {
+                    if (['M', 'F', 'U', 'Underwear'].includes($(this).val())) {
+                        this.checked = true;
+                        localStorage.setItem(this.id, 'checked');
+                    } else {
+                        this.checked = false;
+                        localStorage.setItem(this.id, '');
+                    }
+                } else if (window.location.hash === '#shoes') {
+                    if (['M', 'F', 'U', 'Shoe'].includes($(this).val())) {
+                        this.checked = true;
+                        localStorage.setItem(this.id, 'checked');
+                    } else {
+                        this.checked = false;
+                        localStorage.setItem(this.id, '');
+                    }
+                } else if (window.location.hash === '#accessories') {
+                    if (['M', 'F', 'U', 'Accessory'].includes($(this).val())) {
+                        this.checked = true;
+                        localStorage.setItem(this.id, 'checked');
+                    } else {
+                        this.checked = false;
+                        localStorage.setItem(this.id, '');
+                    }
+                } else if (localStorage.getItem(this.id)) {
+                    this.checked = true;
+                }
+            });
+            history.replaceState(null, null, ' ');
+        }
+
+        $('.form-check-input').on('click', toggleChecked);
+
+        $('#sortBy').on('change', function () {
+            localStorage.setItem('selectId', $('option:selected').attr('id'));
+            getAndShowItems();
+        })
+
+        function toggleChecked() {
+            if (this.checked === true) {
+                localStorage.setItem(this.id, 'checked');
+            } else if (this.checked === false) {
+                localStorage.setItem(this.id, '');
+            }
+            getAndShowItems();
+        }
+    </script>
+    <script>
+        function checkInputOverlap(element) {
+            let inputLine = $('#searchBar input').val().toLowerCase().split(' ');
+            if (inputLine[0] === "") {
+                return true;
+            }
+            for (let string of inputLine) {
+                if (element['name'].toLowerCase().includes(string) || element['about'].toLowerCase().includes(string)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function getAndShowItems() {
+            let genderConditions = $('#genderSelector input:checked').map((index, domElement) => domElement.getAttribute('value')).toArray();
+            let itemTypeConditions = $('#itemTypeSelector input:checked').map((index, domElement) => domElement.getAttribute('value')).toArray();
+            let sort_type = $('option:selected').text();
+            $.ajax({
+                url: "../item_list",
+                type: "GET",
+                data: {
+                    gender: JSON.stringify(genderConditions),
+                    item_type: JSON.stringify(itemTypeConditions),
+                    min_price: inputFormatFrom.value,
+                    max_price: inputFormatTo.value,
+                    sort_type: sort_type,
+                },
+                dataType: 'json',
+                success: function (itemsToShow) {
+                    itemsToShow = itemsToShow.filter(elem => checkInputOverlap(elem))
+                    showItems(itemsToShow);
+                }
+            });
+        }
+
+
+        function showItems(itemsToShow) {
+            let itemContainer = $('#filteredItems');
+            if (itemsToShow.length > 0) {
+                itemsToShow = divideItemsToCardDecks(itemsToShow);
+            } else {
+                itemContainer.html("");
+            }
+            let content = "";
+            for (let itemRow of itemsToShow) {
+                content += "<div class=\"card-deck mt-5 mb-5\">";
+                for (let item of itemRow) {
+                    content += "<div class='card' target=\"" + item['id'] + "\" onclick=\"detail($(this))\">\n" +
+                        "    <img src='" + item['image'] + "' class='card-img-top' alt='Изображение товара'>\n" +
+                        "    <div class='card-body' >\n" +
+                        "      <h5 class='card-title'><strong>Название: </strong>" + item['name'] + "</h5>\n" +
+                        "      <p class='card-text'><strong>Цена: " + item['price'] + "₽</strong></p>\n" +
+                        "    </div>\n" +
+                        "</div>";
+                }
+                if (itemRow.length === 1) {
+                    content += "<div class='card'></div>";
+                }
+                content += "</div>";
+                itemContainer.html(content);
+            }
+        }
+
+        function divideItemsToCardDecks(itemsToShow) {
+            let divisionSize = 2;
+            let itemsDividedToCardDecks = [];
+            for (let i = 0; i < Math.ceil(itemsToShow.length / divisionSize); i++) {
+                itemsDividedToCardDecks[i] = itemsToShow.slice((i * divisionSize), (i * divisionSize) + divisionSize);
+            }
+            return itemsDividedToCardDecks
+        }
+    </script>
+    <script>
+        let slider = document.getElementById('slider');
+        let inputFormatFrom = document.getElementById('inputFormatFrom');
+        let inputFormatTo = document.getElementById('inputFormatTo');
+
+        noUiSlider.create(slider, {
+            start: [0, 19990],
+            step: 10,
+            connect: true,
+            range: {
+                'min': 0,
+                'max': 19990
+            }
+        });
+
+        slider.noUiSlider.on('change', function (values) {
+            [inputFormatFrom.value, inputFormatTo.value] = values;
+            getAndShowItems();
+        });
+
+        inputFormatFrom.addEventListener('change', function () {
+            slider.noUiSlider.set([this.value, inputFormatTo]);
+            getAndShowItems();
+        });
+
+        inputFormatTo.addEventListener('change', function () {
+            slider.noUiSlider.set([inputFormatFrom, this.value]);
+            getAndShowItems();
+        });
+    </script>
+    <script>
+        $('#navbar-form input').on('keydown', getAndShowItems)
+        $('#searchBar input').on('keydown', getAndShowItems)
+    </script>
+    <script>
+        function makeCorrectSliderPosition() {
+            let $sliderDiv = $('#sliderDiv');
+            let $sortDiv = $('#sortDiv');
+            if ($(window).width() < 1000) {
+                let $borderBox = $('#borderBox');
+                $borderBox.append($sliderDiv);
+                $borderBox.append($sortDiv);
+            } else {
+                let $flexBox = $('#flexBox');
+                $flexBox.append($sliderDiv);
+                $flexBox.append($sortDiv);
+            }
+        }
+
+        $(window).on('load', makeCorrectSliderPosition)
+        $(window).on('resize', makeCorrectSliderPosition)
+    </script>
+    <script>
+        function detail(div) {
+            let pk = div.attr('target');
+            window.location.href = '../detail/' + pk.toString()
+        }
+    </script>
+{% endblock %}

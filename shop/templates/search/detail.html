@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="container border mt-5 mb-5">
+        <div class="row" style="background-color: #ebebeb">
+            <div id="image">
+                <img src="{{ item.image.url }}" alt="Изображение товара" style="width: 100%">
+            </div>
+            <div class="ml-5">
+                <h3 class="card-title"><strong>{{ item.name }}</strong></h3>
+                <p class="card-text"><strong>Цена: </strong>{{ item.price }}₽</p>
+                {% if item.materials %}
+                    <p class="card-text"><strong>Материалы: </strong>{{ item.materials }}</p>
+                {% endif %}
+                {% if item.about %}
+                    <p class="card-text"><strong>О товаре: </strong>{{ item.about }}</p>
+                {% endif %}
+                {% if item.firm %}
+                    <p class="card-text"><strong>Фирма производитель: </strong>{{ item.firm }}</p>
+                {% endif %}
+                {% if item.has_in_stock %}
+                    <p class="card-text"><strong>Выберите размер: </strong></p>
+                    <select class="mb-3" onchange="makeCorrectButton()">
+                        {% for size, count in item.get_count_by_count_sizes %}
+                            {% if count > 0 %}
+                                <option value="{{ size }}">{{ size }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <h4>Товар отсутствует на складе</h4>
+                {% endif %}
+                <br>
+                <div class="mb-3" id="button"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        $(window).on('load', makeCorrectButton)
+
+        function makeCorrectButton() {
+            let content;
+            if (localStorage.getItem('bag') === null) {
+                localStorage.setItem('bag', JSON.stringify([]));
+            }
+            console.log(isItemInBag());
+            if (isItemInBag()) {
+                content = '<button onclick="removeItemFromBag()">Удалить из корзины</button>';
+            } else {
+                content = '<button onclick="addItemToBag()">Добавить в корзину</button>';
+            }
+            $('#button').html(content);
+        }
+
+        function removeItemFromBag() {
+            let itemId = parseInt({{ item.id }});
+            let size = $('option:selected').val();
+            let newBagValue = [];
+            for (let item of JSON.parse(localStorage.getItem('bag'))) {
+                if (item['itemId'] != itemId || item['size'] !== size) {
+                    newBagValue.push(item);
+                }
+            }
+            localStorage.setItem('bag', JSON.stringify(newBagValue));
+            makeCorrectButton();
+        }
+
+        function addItemToBag() {
+            let itemId = parseInt({{ item.id }});
+            let size = $('option:selected').val();
+            let item = {
+                'itemId': itemId,
+                'size': size
+            };
+            let items = JSON.parse(localStorage.getItem('bag'));
+            items.push(item);
+            localStorage.setItem('bag', JSON.stringify(items));
+            makeCorrectButton();
+        }
+
+        function isItemInBag() {
+            let itemId = parseInt({{ item.id }});
+            let size = $('option:selected').val();
+            let isItemInBag = false;
+            if (!localStorage.getItem('bag')) {
+                localStorage.setItem('bag', JSON.stringify([]));
+            }
+            JSON.parse(localStorage.getItem('bag')).forEach(function (item) {
+                if (item['itemId'] == itemId && item['size'] === size) {
+                    isItemInBag = true;
+                }
+            })
+            return isItemInBag;
+        }
+    </script>
+    <script>
+        function makeCorrectImage() {
+            let imageBar = $('#image');
+            if ($(window).width() < 1000) {
+                imageBar.attr('style', 'margin-left: auto;margin-right: auto');
+            } else {
+                imageBar.attr('style', 'margin-left: 0;margin-right: 0');
+            }
+        }
+
+        $(window).on('resize', makeCorrectImage)
+    </script>
+{% endblock %}
