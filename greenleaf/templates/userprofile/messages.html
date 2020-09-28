@@ -29,12 +29,12 @@
 
 {% block body %}
     <div id="mainContent">
-        {% if not friends %}
+        {% if not profiles %}
             <p>У вас пока нет диалогов, добавьте друзей, чтобы они появились!</p>
         {% endif %}
-        {% for friend in friends %}
-            <a id="{{ friend.id }}" class="dialog"
-               href="{% url 'userprofile:dialog' friend_id=friend.id %}">{{ friend.first_name }} {{ friend.last_name }}</a>
+        {% for profile in profiles %}
+            <a id="{{ profile.id }}" class="dialog"
+               href="{% url 'userprofile:dialog' friend_id=profile.id %}">{{ profile.full_name }}</a>
         {% endfor %}
     </div>
 {% endblock %}

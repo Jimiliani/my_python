@@ -47,7 +47,7 @@ class ProfilePost(models.Model):
 class PostComment(models.Model):
     related_post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    comment_text = models.TextField(max_length=5000)
+    text = models.TextField(max_length=5000)
     publication_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -57,4 +57,4 @@ class PostComment(models.Model):
 class Message(models.Model):
     dialog = models.ForeignKey(Friendship, on_delete=models.CASCADE)
     text = models.TextField(max_length=10000)
-    time = models.DateTimeField(auto_now_add=True)
+    publication_date = models.DateTimeField(auto_now_add=True)

@@ -86,9 +86,10 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         else:
             form = self.form_class(request.POST)
             if form.is_valid():
-                ProfilePost.objects.create(author=request.user.profile,
-                                           post_text=form.cleaned_data['post_text'])
-                return JsonResponse(data={'text': form.cleaned_data['post_text']}, status=201)
+                post = ProfilePost.objects.create(author=request.user.profile,
+                                                  post_text=form.cleaned_data['post_text'])
+                return JsonResponse(data={'text': form.cleaned_data['post_text'],
+                                          'id': post.id}, status=201)
             return HttpResponse(form=form, status=400)
 
     def patch(self, request, *args, **kwargs):
@@ -250,6 +251,26 @@ def messagesView(request):
         else:
             friend_users.append(get_object_or_404(User, id=friend.user1.id))
     return render(request, 'userprofile/messages.html', {'friends': friend_users})
+
+
+class MessagesView(LoginRequiredMixin, View):
+    login_url = '/login/'
+    template_name = 'userprofile/messages.html'
+
+    def get(self, request):
+        friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
+                                                friend1_agree=True, friend2_agree=True)
+        profiles = []
+        for friendship in friendships:
+            profile = ''
+            if friendship.friend1 == request.user.profile:
+                profile = friendship.friend2
+            else:
+                profile = friendship.friend1
+            profiles.append({'full_name': profile.user.get_full_name(),
+                             'id': profile.user.id})
+        args = {'profiles': profiles}
+        return render(request, self.template_name, args)
 
 
 @login_required(login_url='/login/')
