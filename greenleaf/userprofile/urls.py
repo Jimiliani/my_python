@@ -9,7 +9,7 @@ urlpatterns = [
     path('settings/', SettingsView.as_view(), name='settings'),
     path('register/', RegisterView.as_view(), name='register'),
     path('user/<str:user_id>', ProfileViewWithPk.as_view(), name='profile'),
-    path('friends/', friendsView, name='friends'),
+    path('friends/', FriendsView.as_view(), name='friends'),
     path('messages/', messagesView, name='messages'),
     path('dialog/<str:friend_id>', dialogView, name='dialog'),
 ]

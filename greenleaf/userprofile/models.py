@@ -20,6 +20,10 @@ class Friendship(models.Model):
     friend1_agree = models.BooleanField(default=False)
     friend2_agree = models.BooleanField(default=False)
 
+    def __str__(self):
+        return str(self.friend1) + ' ' + str(self.friend1_agree) + ' ' \
+               + str(self.friend2) + ' ' + str(self.friend2_agree)
+
 
 class ProfilePost(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='author')

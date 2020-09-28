@@ -347,35 +347,6 @@
         }
     </script>
     <script>
-        $(document).on('load', chooseButton())
-
-        function chooseButton() {
-            console.log('called');
-            $.ajax({
-                type: "GET",
-                url: window.location.href,
-                data: {
-                    request_type: 'are_friends',
-                },
-                dataType: "json",
-                success: function (data) {
-                    console.log(data)
-                    console.log(data.are_friends)
-                    if (data.are_friends === 'True') {
-                        $('.add-friend').css('display', 'none');
-                        $('.delete-friend').css('display', 'block');
-                    } else if (data.are_friends === 'False') {
-                        $('.add-friend').css('display', 'block');
-                        $('.delete-friend').css('display', 'none');
-                    }
-                },
-                error: function (data, errors) {
-                    console.log(data);
-                    console.log(errors);
-                }
-            })
-        }
-
         $('.add-friend').on('click', function () {
             $.ajax({
                 type: "POST",

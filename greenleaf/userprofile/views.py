@@ -3,7 +3,8 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
@@ -77,33 +78,10 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         print(request.POST)
         if request.POST['request_type'] == 'add_friend':
-            print(request.POST['user'])
-            try:
-                friendship = Friendship.objects.get(
-                    friend1__user_id=min(int(request.POST['user']), int(request.user.id)),
-                    friend2__user_id=max(int(request.POST['user']), int(request.user.id)))
-                friendship.friend1_agree = True
-                friendship.friend2_agree = True
-                friendship.save()
-            except Friendship.DoesNotExist:
-                if int(request.POST['user']) > int(request.user.id):
-                    Friendship.objects.create(friend1=request.user.profile,
-                                              friend2=User.objects.get(id=request.POST['user']).profile,
-                                              friend1_agree=True)
-
-                else:
-                    Friendship.objects.create(friend1=User.objects.get(id=request.POST['user']).profile,
-                                              friend2=request.user.profile,
-                                              friend2_agree=True)
+            make_friends(who_adds=int(request.user.id), whom_is_added=int(request.POST['user']))
             return HttpResponse('success')
         elif request.POST['request_type'] == 'delete_friend':
-            print(request.POST['user'])
-            friendship = Friendship.objects.get(
-                friend1__user_id=min(int(request.POST['user']), int(request.user.id)),
-                friend2__user_id=max(int(request.POST['user']), int(request.user.id)))
-            friendship.friend1_agree = False
-            friendship.friend2_agree = False
-            friendship.save()
+            delete_friends(who_delete=int(request.user.id), whom_is_deleted=int(request.POST['user']))
             return HttpResponse('success')
         else:
             form = self.form_class(request.POST)
@@ -124,9 +102,97 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                                   'count_of_likes': post.like.count()})
 
 
-@login_required(login_url='/login/')
-def friendsView(request):
-    return render(request, 'userprofile/friends.html')
+class FriendsView(LoginRequiredMixin, View):
+    login_url = '/login/'
+    template_name = 'userprofile/friends.html'
+
+    def get(self, request, *args, **kwargs):
+        if 'request_type' not in request.GET:
+            return render(request, self.template_name)
+        friendships = ''
+        if request.GET['request_type'] == 'myFriends':
+            friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
+                                                    friend1_agree=True, friend2_agree=True)
+        elif request.GET['request_type'] == 'incomingRequests':
+            friendships = Friendship.objects.filter(
+                (Q(friend1=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True)) | (
+                        Q(friend2=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False)))
+        elif request.GET['request_type'] == 'outgoingRequests':
+            friendships = Friendship.objects.filter(
+                (Q(friend1=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False)) | (
+                        Q(friend2=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True)))
+        profiles = []
+        for friendship in friendships:
+            if friendship.friend1 == request.user.profile:
+                profiles.append(friendship.friend2)
+            else:
+                profiles.append(friendship.friend1)
+        if request.GET['request_type'] == 'allUsers':
+            profiles = Profile.objects.exclude(user=request.user)
+        friends = []
+        for profile in profiles:
+            print(request.user.profile.friends.all())
+            print(profile.friends.all())
+            friends.append({'id': profile.user.id,
+                            'full_name': profile.user.get_full_name(),
+                            'profile_picture': profile.profile_picture.url,
+                            'in_friends': are_friends(request.user.id, profile.user.id)})
+        return JsonResponse(json.dumps(friends), safe=False)
+
+    def post(self, request, *args, **kwargs):
+        make_friends(int(request.user.id), int(request.POST['friend_id']))
+        return HttpResponse('success')
+
+    def delete(self, request, *args, **kwargs):
+        body = QueryDict(request.body)
+        delete_friends(int(request.user.id), int(body.get('friend_id')))
+        return HttpResponse('success')
+
+
+def make_friends(who_adds, whom_is_added):
+    try:
+        friendship = Friendship.objects.get(
+            friend1__user_id=min(who_adds, whom_is_added),
+            friend2__user_id=max(who_adds, whom_is_added))
+        friendship.friend1_agree = True
+        friendship.friend2_agree = True
+        friendship.save()
+    except Friendship.DoesNotExist:
+        friend1 = User.objects.get(id=who_adds).profile
+        friend2 = User.objects.get(id=whom_is_added).profile
+        if who_adds < whom_is_added:
+            Friendship.objects.create(friend1=friend1, friend2=friend2, friend1_agree=True)
+        else:
+            Friendship.objects.create(friend1=friend2, friend2=friend1, friend2_agree=True)
+
+
+def delete_friends(who_delete, whom_is_deleted):
+    friendship = Friendship.objects.get(
+        friend1__user_id=min(who_delete, whom_is_deleted),
+        friend2__user_id=max(who_delete, whom_is_deleted))
+    if who_delete < whom_is_deleted:
+        friendship.friend1_agree = False
+    else:
+        friendship.friend2_agree = False
+    friendship.save()
+
+
+def are_friends(user, friend):
+    try:
+        friendship = Friendship.objects.get(friend1__user_id=min(user, friend), friend2__user_id=max(user, friend))
+        print('friendship found')
+        if friendship.friend1.user.id == user and friendship.friend1_agree or \
+                friendship.friend2.user.id == user and friendship.friend2_agree:
+            print('true')
+            return True
+        print('try false')
+        return False
+    except Friendship.DoesNotExist:
+        print('except false')
+        return False
+
+
+# заменить на эту функцию post методы в FriendsView и ProfileWithPkView
 
 
 class RegisterView(View):
