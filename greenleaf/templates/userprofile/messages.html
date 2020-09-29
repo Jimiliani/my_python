@@ -41,37 +41,6 @@
 
 {% block scripts %}
     <script>
-        /*
-
-        Этот скрипт должен добавлять диалог в открытые, чтобы на него потом можно было быстро переключиться, проблема в том,
-        что если мы например выйдем из аккаунта человека 1 и зайдем в аккаунт человека 2, то у нас автоматом будут открыты
-        диалоги, которых может в дейстительности не быть, можно этого избежать например добавив в localStorage id текущего
-        пользователя, а также для каждого открытого диалога делать ключ: значение в виде id: полное имя.
-
-        */
-
-        $('a').on('click', function () {
-            let dialogId = $(this).attr('id');
-            if (localStorage.getItem('userId').toString() !== ({{ user.id }}).toString()) {
-                localStorage.clear();
-                localStorage.setItem('userId', {{ user.id }});
-            }
-            localStorage.setItem(dialogId.toString(), $(this).text())
-            if (localStorage.getItem('openedDialogs') === null) {
-                localStorage.setItem('openedDialogs', JSON.stringify([dialogId]));
-            } else {
-                let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
-                console.log(openedDialogs);
-                if (!openedDialogs.includes(dialogId.toString())) {
-                    openedDialogs.push(dialogId);
-                }
-                console.log(openedDialogs);
-                localStorage.setItem('openedDialogs', JSON.stringify(openedDialogs));
-            }
-        })
-
-    </script>
-    <script>
         $(window).on('load', function () {
             let dialogs = $('.dialog');
             if (dialogs.length === 1) {

@@ -11,5 +11,5 @@ urlpatterns = [
     path('user/<str:user_id>', ProfileViewWithPk.as_view(), name='profile'),
     path('friends/', FriendsView.as_view(), name='friends'),
     path('messages/', MessagesView.as_view(), name='messages'),
-    path('dialog/<str:friend_id>', dialogView, name='dialog'),
+    path('dialog/<str:friend_id>', DialogView.as_view(), name='dialog'),
 ]

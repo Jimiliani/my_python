@@ -56,5 +56,6 @@ class PostComment(models.Model):
 
 class Message(models.Model):
     dialog = models.ForeignKey(Friendship, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)

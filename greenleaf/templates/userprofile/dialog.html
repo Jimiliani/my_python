@@ -42,6 +42,7 @@
 
         .message-container {
             display: flex;
+            width: 100%;
             flex-direction: row;
             background: rgba(245, 245, 245, 1);
             border-radius: 25px;
@@ -117,18 +118,12 @@
             outline: none;
         }
 
-        a:first-of-type {
-            border-width: 2px 2px 1px 2px;
-            border-radius: 25px 25px 0 0;
-        }
-
-        a:last-of-type {
-            border-width: 1px 2px 2px 2px;
-            border-radius: 0 0 25px 25px;
-        }
-
         svg {
             margin: 0 5px -5px 5px;
+        }
+
+        .active {
+            background: rgba(255, 255, 255, 1.0) !important;
         }
 
 
@@ -172,31 +167,49 @@
 
         function getAndPrintMessages() {
             let messages, content = "";
-            $.ajax({
-                type: "GET",
-                url: "{% url 'api:dialog-list-with-friend-id' friend_id=friend.id %}",
-                success: function (data) {
-                    messages = data;
-                },
-                error: function (data, errors) {
-                    console.log('error');
-                    console.log(data);
-                    console.log(errors);
-                }
-            }).then(function () {
+            $.when(
+                $.ajax({
+                    type: "GET",
+                    url: window.location.href,
+                    success: function () {
+                        console.log();
+                    },
+                    error: function (data, errors) {
+                        console.log('error');
+                        console.log(data);
+                        console.log(errors);
+                    }
+                }),
+                $.ajax({
+                    type: "GET",
+                    url: window.location.href,
+                    dataType: 'json',
+                    data: {
+                        request_type: 'get_messages',
+                    },
+                    success: function (data) {
+                        console.log(data);
+                        messages = data['messages'];
+                    },
+                    error: function (data, errors) {
+                        console.log('error');
+                        console.log(data);
+                        console.log(errors);
+                    }
+                })).then(function () {
                 for (let message of messages) {
-                    console.log(message['message_from']);
-                    if (message['message_from'] === {{ user.id }}) {
+                    console.log(message['id']);
+                    if (message['id'] === {{ user.id }}) {
                         content += "" +
                             "<div class='message-container'>" +
-                            "   <img class='profile-picture' src='{{ userProfile.profile_picture.url }}'>" +
+                            "   <img class='profile-picture' src='{{ user.profile.profile_picture.url }}'>" +
                             "   <p>" + message['text'] + "</p>" +
                             "</div>"
                     } else {
                         content += "" +
                             "<div class='message-container'>" +
                             "   <p>" + message['text'] + "</p>" +
-                            "   <img class='profile-picture' src='{{ friend.profile_picture.url }}'>" +
+                            "   <img class='profile-picture' src='{{ friend_profile_picture_url }}'>" +
                             "</div>"
                     }
                 }
@@ -240,21 +253,21 @@
             if (postTextarea.val() !== '') {
                 $.ajax({
                     type: "POST",
-                    url: "../api/dialog/" + {{ friend.id }} +"/",
+                    url: window.location.href,
                     data: {
-                        message_from: {{ userProfile.id }},
-                        message_to: {{ friend.id }},
                         text: postTextarea.val(),
                     },
-                    dataType: "json",
                     beforeSend: function (xhr, settings) {
                         xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
                     },
                     success: function (data) {
+                        let content = "" +
+                            "<div class='message-container'>" +
+                            "   <img class='profile-picture' src='{{ user.profile.profile_picture.url }}'>" +
+                            "   <p>" + postTextarea.val() + "</p>" +
+                            "</div>";
+                        $(content).appendTo($('.messages'))
                         postTextarea.val('');
-                        console.log('добавили это сообщение к остальным');
-                        // добавить это сообщение ко всем вместо нового ajax запроса
-                        getAndPrintMessages()
                     },
                     error: function (data, errors) {
                         console.log(data);
@@ -270,27 +283,93 @@
     </script>
     <script>
 
-        $(window).on('load', function () {
-            let openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
-            console.log(openedDialogs);
-            let content = ""
-            openedDialogs.forEach(function (dialog) {
-                console.log(dialog);
-                let fullName = localStorage.getItem(dialog);
-                console.log(fullName)
+        $(window).on('load', printDialogs())
+
+        function printDialogs() {
+            let id = "{{ user.id }}";
+            let friend_id = {{ friend_id }};
+            let friend_full_name = "{{ friend_full_name }}";
+            let openedDialogs = {};
+            if (localStorage.getItem('openedDialogs')) {
+                openedDialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+                if (Object.keys(openedDialogs).includes(id)) {
+                    console.log('user added');
+                    console.log(openedDialogs[id])
+                    if (openedDialogs[id].map(val => val['id']).includes(friend_id)) {
+                        console.log('already added')
+                    } else {
+                        openedDialogs[id].push({'id': friend_id, 'full_name': friend_full_name});
+                    }
+                } else {
+                    console.log('added now');
+                    openedDialogs[id] = [{'id': friend_id, 'full_name': friend_full_name}];
+                }
+            } else {
+                console.log('first time here');
+                openedDialogs[id] = [{'id': friend_id, 'full_name': friend_full_name}];
+            }
+            localStorage.setItem('openedDialogs', JSON.stringify(openedDialogs))
+            let content = "";
+            for (let friend of openedDialogs[id]) {
+                console.log('В панели справа: ' + friend['id'] + ' ' + friend['full_name'])
                 content += "" +
-                    "<a id=\"" + dialog + "\" href=\"" + dialog + "\">" + fullName + "" +
-                    "   <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n" +
+                    "<a class=\"opened-dialog " + ((friend_id == friend['id']) ? "active" : "") + "\" id=\"" + friend['id'] + "\" href=\"" + friend['id'] + "\">" + friend['full_name'] + "" +
+                    "   <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" onclick=\"closeDialog(" + friend['id'] + ")\">\n" +
                     "       <path d=\"M9.036 7.976a.75.75 0 00-1.06 1.06L10.939 12l-2.963 2.963a.75.75 0 101.06 1.06L12 13.06l2.963 2.964a.75.75 0 001.061-1.06L13.061 12l2.963-2.964a.75.75 0 10-1.06-1.06L12 10.939 9.036 7.976z\"></path>\n" +
                     "       <path fill-rule=\"evenodd\"\n" +
                     "                                  d=\"M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z\"></path>\n" +
                     "   </svg>" +
                     "</a>"
-            })
+            }
             $('#dialogsNavbar').html(content)
-        })
+            bindScriptsAndClasses()
+        }
 
+        function bindScriptsAndClasses() {
+            let dialogs = $('a.opened-dialog');
+            if (dialogs.first()[0] === dialogs.last()[0]) {
+                console.log(123);
+                console.log(123);
+                dialogs.first().css({
+                    'border-width': '2px 2px 2px 2px',
+                    'border-radius': '25px 25px 25px 25px'
+                });
+            } else {
+                console.log(123);
+                dialogs.first().css({
+                    'border-width': '2px 2px 1px 2px',
+                    'border-radius': '25px 25px 0 0'
+                });
+                dialogs.last().css({
+                    'border-width': '1px 2px 2px 2px',
+                    'border-radius': '0 0 25px 25px'
+                });
+            }
+            dialogs.on('click', function (e) {
+                if (e.target !== this) {
+                    e.preventDefault();
+                }
+            })
+        }
+
+        function closeDialog(id) {
+            console.log(id);
+            let dialogs = JSON.parse(localStorage.getItem('openedDialogs'));
+            console.log('dialogs: ', dialogs);
+            for (let user of Object.keys(dialogs)) {
+                console.log('user: ', dialogs[user]);
+                console.log('filtered user: ', dialogs[user].filter(dialog => dialog['id'] !== id));
+                dialogs[user] = dialogs[user].filter(dialog => dialog['id'] !== id)
+            }
+            localStorage.setItem('openedDialogs', JSON.stringify(dialogs));
+            if (id.toString() === "{{ friend_id }}") {
+                window.location.href = '../messages/'
+            }
+            $('#' + id.toString()).detach();
+            bindScriptsAndClasses();
+        }
     </script>
+    {% comment %}
     <script>
         $('svg').on('click', function () {
             let dialogId = $(this).parent().attr('id');
@@ -322,4 +401,5 @@
             }
                 */
     </script>
+    {% endcomment %}
 {% endblock %}

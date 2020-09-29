@@ -8,10 +8,11 @@ from userprofile.models import Profile, Friendship
 @receiver(post_save, sender=User)
 def create_profile(instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        profile = Profile.objects.create(user=instance)
+        profile.save()
 
 
 @receiver(post_save, sender=Friendship)
-def create_profile(instance, created, **kwargs):
+def delete_friendship(instance, created, **kwargs):
     if not instance.friend1_agree and not instance.friend2_agree:
         instance.delete()

@@ -11,7 +11,7 @@ from django.contrib.auth import logout, login, authenticate
 
 from .models import Profile, ProfilePost, Friendship, Message
 
-from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, MessageCreationForm, PostCreationForm
+from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, PostCreationForm
 
 
 @login_required(login_url='/login/')
@@ -207,11 +207,11 @@ class RegisterView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            User.objects.create_user(username=form.cleaned_data['username'],
-                                     email=form.cleaned_data['email'],
-                                     password=form.cleaned_data['password1'],
-                                     first_name=form.cleaned_data['first_name'],
-                                     last_name=form.cleaned_data['last_name'])
+            user = User.objects.create_user(username=form.cleaned_data['username'],
+                                            email=form.cleaned_data['email'],
+                                            password=form.cleaned_data['password1'],
+                                            first_name=form.cleaned_data['first_name'],
+                                            last_name=form.cleaned_data['last_name'])
             return redirect('userprofile:login')
 
         return render(request, self.template_name, {'form': form})
@@ -271,6 +271,35 @@ class MessagesView(LoginRequiredMixin, View):
                              'id': profile.user.id})
         args = {'profiles': profiles}
         return render(request, self.template_name, args)
+
+
+class DialogView(LoginRequiredMixin, View):
+    login_url = '/login/'
+    template_name = 'userprofile/dialog.html'
+
+    def get(self, request, friend_id):
+        if 'request_type' not in request.GET:
+            user = User.objects.get(id=friend_id)
+            args = {'friend_profile_picture_url': user.profile.profile_picture.url,
+                    'friend_full_name': user.get_full_name(),
+                    'friend_id': friend_id}
+            return render(request, self.template_name, args)
+        elif request.GET['request_type'] == 'get_messages':
+            friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),
+                                                friend2=max(int(request.user.id), int(friend_id)))
+            messages = Message.objects.filter(dialog=friendship)
+            serialized_messages = []
+            for message in messages:
+                serialized_messages.append({'id': message.owner_id,
+                                            'text': message.text,
+                                            'pub_date': message.publication_date})
+            return JsonResponse(data={'messages': serialized_messages})
+
+    def post(self, request, friend_id):
+        friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),
+                                            friend2=max(int(request.user.id), int(friend_id)))
+        Message.objects.create(dialog=friendship, owner_id=request.user.id, text=request.POST['text'])
+        return HttpResponse('success')
 
 
 @login_required(login_url='/login/')
