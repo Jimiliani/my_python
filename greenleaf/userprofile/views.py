@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth import logout, login, authenticate
 
-from .models import Profile, ProfilePost, Friendship, Message
+from .models import Profile, ProfilePost, Friendship, Message, PostComment
 
 from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, PostCreationForm
 
@@ -48,6 +48,13 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                     int(request.GET['posts_from']):int(request.GET['posts_to'])]
             posts = [post.serialize_extra_posts(request.user.profile) for post in posts.all()]
             return JsonResponse(data={'posts': posts})
+        if request.GET and request.GET['request_type'] == 'get_comments':
+            comments = []
+            for comment in PostComment.objects.filter(post=request.GET['post_id']).order_by('publication_date'):
+                comments.append({'owner_id': comment.owner.user.id,
+                                 'owner_full_name': comment.owner.user.get_full_name(),
+                                 'text': comment.text})
+            return JsonResponse(data={'comments': comments}, safe=False)
         are_friends = 'None'
         if user != request.user:
             try:
@@ -76,12 +83,19 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         return render(request, self.template_name, args)
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         if request.POST['request_type'] == 'add_friend':
             make_friends(who_adds=int(request.user.id), whom_is_added=int(request.POST['user']))
             return HttpResponse('success')
         elif request.POST['request_type'] == 'delete_friend':
             delete_friends(who_delete=int(request.user.id), whom_is_deleted=int(request.POST['user']))
+            return HttpResponse('success')
+        elif request.POST['request_type'] == 'add_comment':
+            PostComment.objects.create(owner_id=request.user.id,
+                                       text=request.POST['comment_text'],
+                                       post_id=request.POST['post_id'])
+            print(request.POST['comment_text'], request.POST['post_id'])
+            print(request.POST['comment_text'], request.POST['post_id'])
+            print(request.POST['comment_text'], request.POST['post_id'])
             return HttpResponse('success')
         else:
             form = self.form_class(request.POST)
@@ -95,9 +109,9 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
     def patch(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
         post = get_object_or_404(ProfilePost, id=body['post_id'])
-        if body['action_type'] == 'add':
+        if body['request_type'] == 'add_like':
             post.like.add(request.user.profile)
-        elif body['action_type'] == 'remove':
+        elif body['request_type'] == 'remove_like':
             post.like.remove(request.user.profile)
         return JsonResponse(data={'is_liked': request.user.profile in post.like.all(),
                                   'count_of_likes': post.like.count()})
@@ -241,18 +255,6 @@ class SettingsView(LoginRequiredMixin, View):
                                                     'userProfile': userProfile})
 
 
-@login_required(login_url='/login/')
-def messagesView(request):
-    friends = Friendship.get_friends(user=request.user)
-    friend_users = []
-    for friend in friends:
-        if friend.user1.id == request.user.id:
-            friend_users.append(get_object_or_404(User, id=friend.user2.id))
-        else:
-            friend_users.append(get_object_or_404(User, id=friend.user1.id))
-    return render(request, 'userprofile/messages.html', {'friends': friend_users})
-
-
 class MessagesView(LoginRequiredMixin, View):
     login_url = '/login/'
     template_name = 'userprofile/messages.html'
@@ -300,12 +302,3 @@ class DialogView(LoginRequiredMixin, View):
                                             friend2=max(int(request.user.id), int(friend_id)))
         Message.objects.create(dialog=friendship, owner_id=request.user.id, text=request.POST['text'])
         return HttpResponse('success')
-
-
-@login_required(login_url='/login/')
-def dialogView(request, friend_id):
-    form = MessageCreationForm(request.POST)
-    return render(request, 'userprofile/dialog.html',
-                  {'friend': Profile.objects.get(id=friend_id),
-                   'userProfile': Profile.objects.get(id=request.user.id),
-                   'form': form})

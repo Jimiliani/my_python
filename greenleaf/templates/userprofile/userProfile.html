@@ -72,13 +72,25 @@
             width: 100%;
         }
 
+        .post-buttons-and-comments {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
         .like {
             background: rgb(40, 217, 27);
+        }
+
+        .left-bottom-border {
             border-radius: 0 0 0 25px;
         }
 
         .comments {
             background: rgb(19, 55, 255);
+        }
+
+        .right-bottom-border {
             border-radius: 0 0 25px 0;
         }
 
@@ -91,6 +103,12 @@
             background: rgb(40, 217, 27);
             border-radius: 0 0 25px 0;
         }
+
+        .add-new-comment {
+            background: rgb(40, 217, 27);
+            border-radius: 0 0 25px 25px;
+        }
+
 
         .post-content-button {
             width: 100%;
@@ -112,6 +130,10 @@
             border-top-color: black;
         }
 
+        .add-comment-form {
+            margin: 0 0 10px 0;
+        }
+
         .post-content-text {
             padding: 10px 20px 0 20px;
             margin-bottom: -10px;
@@ -119,6 +141,20 @@
             box-sizing: border-box;
             border-radius: 25px 25px 0 0;
             border: 2px solid black;
+            outline: none;
+            min-height: 50px;
+            overflow: hidden;
+            font-family: 'Pangolin', cursive;
+            font-size: 20px;
+        }
+
+        .comment-text {
+            margin-bottom: -10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-width: 1px 2px 2px 2px;
+            border-style: solid;
+            border-top-color: black;
             outline: none;
             min-height: 50px;
             overflow: hidden;
@@ -138,6 +174,16 @@
             margin-right: auto;
             margin-left: auto;
         }
+
+        .post-comments p {
+            background-color: rgba(245, 245, 245, 0.7);
+            margin: 0;
+            padding: 5px 0;
+            border-color: black;
+            border-style: solid;
+            border-width: 1px 2px;
+        }
+
     </style>
 {% endblock %}
 {% block body %}
@@ -205,23 +251,28 @@
                     {{ post.post_text }}
                     {{ post.publication_date }}
                 </textarea>
-                    <div class="post-buttons">
-                        <button class="post-content-button like" value="{{ post.id }}" onclick="toggleLiked(this)">
-                            <svg width="1em" height="1em" viewBox="0 0 16 16"
-                                 class="{% if user.profile in post.like.all %} liked {% endif %}"
-                                 fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                      d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"></path>
-                            </svg>
-                            {{ post.like.count }} Понравилось
-                        </button>
-                        <button class="post-content-button comments">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill-rule="evenodd"
-                                      d="M3.25 4a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h2.5a.75.75 0 01.75.75v3.19l3.72-3.72a.75.75 0 01.53-.22h10a.25.25 0 00.25-.25V4.25a.25.25 0 00-.25-.25H3.25zm-1.75.25c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v12.5a1.75 1.75 0 01-1.75 1.75h-9.69l-3.573 3.573A1.457 1.457 0 015 21.043V18.5H3.25a1.75 1.75 0 01-1.75-1.75V4.25z"></path>
-                            </svg>
-                            Комментарии
-                        </button>
+                    <div class="post-buttons-and-comments">
+                        <div class="post-buttons">
+                            <button class="post-content-button like left-bottom-border" value="{{ post.id }}"
+                                    onclick="toggleLiked(this)">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16"
+                                     class="{% if user.profile in post.like.all %} liked {% endif %}"
+                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"></path>
+                                </svg>
+                                {{ post.like.count }} Понравилось
+                            </button>
+                            <button class="post-content-button comments right-bottom-border" value="{{ post.id }}"
+                                    onclick="toggleComments(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                    <path fill-rule="evenodd"
+                                          d="M3.25 4a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h2.5a.75.75 0 01.75.75v3.19l3.72-3.72a.75.75 0 01.53-.22h10a.25.25 0 00.25-.25V4.25a.25.25 0 00-.25-.25H3.25zm-1.75.25c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v12.5a1.75 1.75 0 01-1.75 1.75h-9.69l-3.573 3.573A1.457 1.457 0 015 21.043V18.5H3.25a1.75 1.75 0 01-1.75-1.75V4.25z"></path>
+                                </svg>
+                                {{ post.postcomment_set.count }} Комментарии
+                            </button>
+                        </div>
+                        <div class="post-comments" id="{{ post.id }}-post"></div>
                     </div>
                 </div>
             {% endfor %}
@@ -255,7 +306,7 @@
                             "                    " + post.publication_date + "\n" +
                             "                </textarea>\n" +
                             "                    <div class=\"post-buttons\">\n" +
-                            "                        <button class=\"post-content-button like\" value=\"" + post.id + "\" onclick=\"toggleLiked(this)\">\n" +
+                            "                        <button class=\"post-content-button like left-bottom-border\" value=\"" + post.id + "\" onclick=\"toggleLiked(this)\">\n" +
                             "                            <svg width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\"\n" +
                             "                                 class=\"" + (post.is_liked_by_user ? "liked" : "") + " \"\n" +
                             "                                 fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
@@ -264,12 +315,12 @@
                             "                            </svg>\n" +
                             "                            " + post.like_count + " Понравилось\n" +
                             "                        </button>\n" +
-                            "                        <button class=\"post-content-button comments\">\n" +
+                            "                        <button class=\"post-content-button comments right-bottom-border\" value=\"" + post.id + "\" onclick=\"toggleComments(this)\">\n" +
                             "                            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n" +
                             "                                <path fill-rule=\"evenodd\"\n" +
                             "                                      d=\"M3.25 4a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h2.5a.75.75 0 01.75.75v3.19l3.72-3.72a.75.75 0 01.53-.22h10a.25.25 0 00.25-.25V4.25a.25.25 0 00-.25-.25H3.25zm-1.75.25c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v12.5a1.75 1.75 0 01-1.75 1.75h-9.69l-3.573 3.573A1.457 1.457 0 015 21.043V18.5H3.25a1.75 1.75 0 01-1.75-1.75V4.25z\"></path>\n" +
                             "                            </svg>\n" +
-                            "                            Комментарии\n" +
+                            "                            " + post.comment_count + "Комментарии\n" +
                             "                        </button>\n" +
                             "                    </div>\n" +
                             "                </div>"
@@ -289,6 +340,7 @@
     <script>
         $(window).on('load', function () {
             makeCorrectProfileImageSize();
+            $('.post-comments').hide();
         });
 
         $(window).on('resize', function () {
@@ -319,7 +371,7 @@
                 type: "PATCH",
                 url: window.location.href,
                 data: JSON.stringify({
-                    action_type: (svg.hasClass('liked') ? 'remove' : 'add'),
+                    request_type: (svg.hasClass('liked') ? 'remove_like' : 'add_like'),
                     post_id: $(elem).val(),
                 }),
                 dataType: "json",
@@ -329,14 +381,12 @@
                 success: function (data, textStatus, xhr) {
                     console.log(data.is_liked);
                     console.log(data.count_of_likes);
-                    $(elem).replaceWith(
-                        "<button class=\"post-content-button like\" value=\"" + $(elem).val() + "\" onclick=\"toggleLiked(this)\">" +
+                    $(elem).html(
                         "    <svg width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\" class=\"" + (data.is_liked ? 'liked' : '') + "\" " +
                         "         fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
                         "             <path fill-rule=\"evenodd\"\n" +
                         "                 d=\"M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z\"></path>\n" +
-                        "    </svg>\n" + data.count_of_likes + " Понравилось\n" +
-                        "</button>"
+                        "    </svg>\n" + data.count_of_likes + " Понравилось\n"
                     );
                 },
                 error: function (data, errors) {
@@ -344,6 +394,83 @@
                     console.log(errors);
                 }
             });
+        }
+    </script>
+    <script>
+        function toggleComments(elem) {
+            let parent = $(elem).parent();
+            parent.children('.like').toggleClass('left-bottom-border');
+            parent.children('.comments').toggleClass('right-bottom-border');
+            let commentsId = $(elem).val() + "-post";
+            let $comments = $('#' + commentsId);
+            console.log('clicked');
+            $(elem).hasClass('right-bottom-border') ? $comments.hide() : $comments.show();
+            if (!$(elem).hasClass('right-bottom-border')) {
+                $.ajax({
+                    type: "GET",
+                    url: window.location.href,
+                    dataType: "json",
+                    data: {
+                        request_type: 'get_comments',
+                        post_id: $(elem).val(),
+                    },
+                    success: function (data) {
+                        console.log(data);
+                        console.log(data['comments']);
+                        let content = "";
+                        for (let comment of data['comments']) {
+                            console.log(comment);
+                            content += "<p><b>" + comment['owner_full_name'] + ":</b> " + comment['text'] + "</p>";
+                        }
+                        content += "" +
+                            "<div class=\"add-comment-form\">\n" +
+                            "                <textarea class=\"comment-text\" data-target=\"" + $(elem).val() + "\" oninput=\"makeCorrectTextareaSize()\" \n" +
+                            "                          placeholder=\"Текст сообщения\"></textarea>\n" +
+                            "                    <button class=\"post-content-button add-new-comment\" data-target=\"" + $(elem).val() + "\" onclick=\"addComment(this)\">\n" +
+                            "                        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n" +
+                            "                            <path d=\"M17.28 9.28a.75.75 0 00-1.06-1.06l-5.97 5.97-2.47-2.47a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l6.5-6.5z\"></path>\n" +
+                            "                            <path fill-rule=\"evenodd\"\n" +
+                            "                                  d=\"M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zM2.5 12a9.5 9.5 0 1119 0 9.5 9.5 0 01-19 0z\"></path>\n" +
+                            "                        </svg>\n" +
+                            "                        Отправить\n" +
+                            "                    </button>\n" +
+                            "</div>"
+                        $comments.html(content);
+                    },
+                    error: function (data, errors) {
+                        console.log(data);
+                        console.log(errors);
+                    }
+                })
+            }
+        }
+
+        function addComment(elem) {
+            let postId = $(elem).data('target');
+            let $comments = $('#' + postId + '-post');
+            let commentText = $(elem).prev().val();
+            let content = "<p><b>" + "{{ user.get_full_name }}" +":</b> " + commentText + "</p>";
+            $comments.children('.add-comment-form').prepend(content);
+            $.ajax({
+                type: "POST",
+                url: window.location.href,
+                data: {
+                    request_type: 'add_comment',
+                    post_id: postId,
+                    comment_text: commentText,
+                },
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+                },
+                success: function (data) {
+                    $(elem).prev().val('');
+                    console.log(data);
+                },
+                error: function (data, errors) {
+                    console.log(data);
+                    console.log(errors);
+                }
+            })
         }
     </script>
     <script>
@@ -430,19 +557,18 @@
                                 "                    " + "{% now 'N d, Y, P' %}" + "\n" +
                                 "                </textarea>\n" +
                                 "                    <div class=\"post-buttons\">\n" +
-                                "<button class=\"post-content-button like\" value=\"" + data.id + "\" onclick=\"toggleLiked(this)\">" +
+                                "<button class=\"post-content-button like left-bottom-border\" value=\"" + data.id + "\" onclick=\"toggleLiked(this)\">" +
                                 "    <svg width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\" class=\"\" " +
                                 "         fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
                                 "             <path fill-rule=\"evenodd\"\n" +
                                 "                 d=\"M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z\"></path>\n" +
                                 "    </svg>\n" + 0 + " Понравилось\n" +
                                 "</button>" +
-                                "                        <button class=\"post-content-button comments\">\n" +
+                                "                        <button class=\"post-content-button comments right-bottom-border\"> value=\"" + data.id + "\" onclick=\"toggleComments(this)\"\n" +
                                 "                            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n" +
                                 "                                <path fill-rule=\"evenodd\"\n" +
                                 "                                      d=\"M3.25 4a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h2.5a.75.75 0 01.75.75v3.19l3.72-3.72a.75.75 0 01.53-.22h10a.25.25 0 00.25-.25V4.25a.25.25 0 00-.25-.25H3.25zm-1.75.25c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v12.5a1.75 1.75 0 01-1.75 1.75h-9.69l-3.573 3.573A1.457 1.457 0 015 21.043V18.5H3.25a1.75 1.75 0 01-1.75-1.75V4.25z\"></path>\n" +
-                                "                            </svg>\n" +
-                                "                            Комментарии\n" +
+                                "                            </svg>\n" + 0 + "Комментарии\n" +
                                 "                        </button>\n" +
                                 "                    </div>\n" +
                                 "                </div>");

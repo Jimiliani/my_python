@@ -40,18 +40,19 @@ class ProfilePost(models.Model):
             'post_text': self.post_text,
             'publication_date': self.publication_date,
             'is_liked_by_user': (user_profile in self.like.all()),
-            'like_count': self.like.count()
+            'like_count': self.like.count(),
+            'comment_count': self.postcomment_set.count()
         }
 
 
 class PostComment(models.Model):
-    related_post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
+    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     text = models.TextField(max_length=5000)
     publication_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.related_post) + ' post ' + str(self.owner) + ' comment owner '
+        return str(self.post) + ' post ' + str(self.owner) + ' comment owner '
 
 
 class Message(models.Model):
