@@ -55,14 +55,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                                  'owner_full_name': comment.owner.user.get_full_name(),
                                  'text': comment.text})
             return JsonResponse(data={'comments': comments}, safe=False)
-        are_friends = 'None'
-        if user != request.user:
-            try:
-                Friendship.objects.get(friend1__user_id=min(int(user.id), int(request.user.id)),
-                                       friend2__user_id=max(int(user.id), int(request.user.id)))
-                are_friends = 'True'
-            except Friendship.DoesNotExist:
-                are_friends = 'False'
+        is_my_friend = are_friends(user=request.user.id, friend=user.id)
         if request.GET and request.GET['request_type'] == 'are_friends':
             return JsonResponse(data={'are_friends': are_friends})
         user_profile = user.profile
@@ -78,7 +71,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                 'userProfile': user_profile,
                 'posts': posts,
                 'form': form,
-                'are_friends': are_friends,
+                'are_friends': is_my_friend,
                 'too_many_posts': too_many_posts}
         return render(request, self.template_name, args)
 
@@ -93,9 +86,6 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             PostComment.objects.create(owner_id=request.user.id,
                                        text=request.POST['comment_text'],
                                        post_id=request.POST['post_id'])
-            print(request.POST['comment_text'], request.POST['post_id'])
-            print(request.POST['comment_text'], request.POST['post_id'])
-            print(request.POST['comment_text'], request.POST['post_id'])
             return HttpResponse('success')
         else:
             form = self.form_class(request.POST)

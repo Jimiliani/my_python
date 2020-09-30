@@ -44,6 +44,9 @@ class ProfilePost(models.Model):
             'comment_count': self.postcomment_set.count()
         }
 
+    def __str__(self):
+        return str(self.author) + ' ' + str(self.publication_date)
+
 
 class PostComment(models.Model):
     post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
@@ -60,3 +63,6 @@ class Message(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.owner) + ' ' + str(self.publication_date)

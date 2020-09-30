@@ -42,12 +42,10 @@
 
         .add-friend {
             background-color: lawngreen;
-            display: none;
         }
 
         .delete-friend {
             background-color: rgb(255, 40, 40);
-            display: none;
         }
 
 
@@ -196,29 +194,32 @@
         </div>
         {% if user.id != greenLeafUser.id %}
             <div id="buttonChanger">
-                <button class="button add-friend">
-                    <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-plus-circle"
-                         fill="currentColor"
-                         xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                              d="M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z"></path>
-                        <path fill-rule="evenodd"
-                              d="M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z"></path>
-                        <path fill-rule="evenodd"
-                              d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
-                    </svg>
-                    Добавить в друзья
-                </button>
-                <button class="button delete-friend">
-                    <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-dash-circle"
-                         fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                              d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
-                        <path fill-rule="evenodd"
-                              d="M3.5 8a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.5-.5z"></path>
-                    </svg>
-                    Удалить из друзей
-                </button>
+                {% if not are_friends %}
+                    <button class="button add-friend" onclick="addFriend()">
+                        <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-plus-circle"
+                             fill="currentColor"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z"></path>
+                            <path fill-rule="evenodd"
+                                  d="M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z"></path>
+                            <path fill-rule="evenodd"
+                                  d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                        </svg>
+                        Добавить в друзья
+                    </button>
+                {% else %}
+                    <button class="button delete-friend" onclick="deleteFriend()">
+                        <svg width="32px" height="32px" viewBox="0 0 16 16" class="bi bi-dash-circle"
+                             fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                            <path fill-rule="evenodd"
+                                  d="M3.5 8a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.5-.5z"></path>
+                        </svg>
+                        Удалить из друзей
+                    </button>
+                {% endif %}
             </div>
         {% else %}
             <div class="add-post-form">
@@ -449,7 +450,7 @@
             let postId = $(elem).data('target');
             let $comments = $('#' + postId + '-post');
             let commentText = $(elem).prev().val();
-            let content = "<p><b>" + "{{ user.get_full_name }}" +":</b> " + commentText + "</p>";
+            let content = "<p><b>" + "{{ user.get_full_name }}" + ":</b> " + commentText + "</p>";
             $comments.children('.add-comment-form').prepend(content);
             $.ajax({
                 type: "POST",
@@ -474,7 +475,7 @@
         }
     </script>
     <script>
-        $('.add-friend').on('click', function () {
+        function addFriend() {
             $.ajax({
                 type: "POST",
                 url: window.location.href,
@@ -487,15 +488,27 @@
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
                 },
                 success: function (data) {
-                    chooseButton()
+                    console.log(data);
+                    $('.add-friend').replaceWith("" +
+                        "<button class=\"button delete-friend\" onclick=\"deleteFriend()\">\n" +
+                        "                        <svg width=\"32px\" height=\"32px\" viewBox=\"0 0 16 16\" class=\"bi bi-dash-circle\"\n" +
+                        "                             fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                        "                            <path fill-rule=\"evenodd\"\n" +
+                        "                                  d=\"M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"></path>\n" +
+                        "                            <path fill-rule=\"evenodd\"\n" +
+                        "                                  d=\"M3.5 8a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.5-.5z\"></path>\n" +
+                        "                        </svg>\n" +
+                        "                        Удалить из друзей\n" +
+                        "                    </button>" +
+                        "");
                 },
                 error: function (data, errors) {
                     console.log(data);
                     console.log(errors);
                 }
             })
-        })
-        $('.delete-friend').on('click', function () {
+        }
+        function deleteFriend() {
             $.ajax({
                 type: "POST",
                 url: window.location.href,
@@ -508,14 +521,29 @@
                     xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
                 },
                 success: function (data) {
-                    chooseButton()
+                    console.log(data);
+                    $('.delete-friend').replaceWith("" +
+                        "<button class=\"button add-friend\" onclick=\"addFriend()\">\n" +
+                        "                        <svg width=\"32px\" height=\"32px\" viewBox=\"0 0 16 16\" class=\"bi bi-plus-circle\"\n" +
+                        "                             fill=\"currentColor\"\n" +
+                        "                             xmlns=\"http://www.w3.org/2000/svg\">\n" +
+                        "                            <path fill-rule=\"evenodd\"\n" +
+                        "                                  d=\"M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z\"></path>\n" +
+                        "                            <path fill-rule=\"evenodd\"\n" +
+                        "                                  d=\"M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z\"></path>\n" +
+                        "                            <path fill-rule=\"evenodd\"\n" +
+                        "                                  d=\"M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"></path>\n" +
+                        "                        </svg>\n" +
+                        "                        Добавить в друзья\n" +
+                        "                    </button>" +
+                        "");
                 },
                 error: function (data, errors) {
                     console.log(data);
                     console.log(errors);
                 }
             })
-        })
+        }
     </script>
     <script>
 
