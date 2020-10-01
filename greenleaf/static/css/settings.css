@@ -1,0 +1,14 @@
+.fieldWrapper {
+    margin: 20px 10px;
+}
+
+#mainContent {
+    text-align: center;
+}
+
+input, button {
+    border-radius: 20px;
+    outline: none;
+    padding-left: 10px;
+    padding-right: 10px;
+}

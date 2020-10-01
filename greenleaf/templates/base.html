@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Информация</title>
     <link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <style>
@@ -65,6 +64,9 @@
         }
 
     </style>
+    {% block head %}
+        <title>Информация</title>
+    {% endblock %}
     {% block styles %}
 
     {% endblock %}
@@ -136,8 +138,6 @@
                 request_type: 'has_new_messages',
             },
             success: function (data) {
-                console.log(data);
-                console.log(typeof data);
                 if (data === 'True') {
                     $('#hasNewMessages').css('display', 'inline');
                 }

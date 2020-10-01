@@ -220,22 +220,26 @@ class SettingsView(LoginRequiredMixin, View):
     template_name = 'userprofile/settings.html'
 
     def get(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(Profile, user=request.user)
-        form = self.form_class(request.POST, instance=userProfile)
+        user_profile = get_object_or_404(Profile, user=request.user)
+        form = self.form_class(request.POST, instance=user_profile, initial={'city': user_profile.city,
+                                                                             'phone': user_profile.phone})
         return render(request, self.template_name, {'form': form,
-                                                    'userProfile': userProfile})
+                                                    'userProfile': user_profile})
 
     def post(self, request, *args, **kwargs):
-        userProfile = get_object_or_404(Profile, user=request.user)
+        user_profile = get_object_or_404(Profile, user=request.user)
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
-            userProfile.city = form.cleaned_data['city']
-            userProfile.phone = form.cleaned_data['phone']
-            userProfile.profile_picture = form.cleaned_data['profile_picture']
-            userProfile.save()
+            if form.cleaned_data['city']:
+                user_profile.city = form.cleaned_data['city']
+            if form.cleaned_data['phone']:
+                user_profile.phone = form.cleaned_data['phone']
+            if form.cleaned_data['profile_picture']:
+                user_profile.profile_picture = request.FILES['profile_picture']
+            user_profile.save()
             return redirect('/user/' + str(request.user.id))
         return render(request, self.template_name, {'form': form,
-                                                    'userProfile': userProfile})
+                                                    'userProfile': user_profile})
 
 
 class MessagesView(LoginRequiredMixin, View):
