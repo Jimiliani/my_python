@@ -80,7 +80,14 @@
         </svg>
         <a class="navbar-button" id="firstHref" href="{% url 'userprofile:profile' user_id=user.id %}">Мой профиль</a>
         <a class="navbar-button" href="{% url 'userprofile:friends' %}">Друзья </a>
-        <a class="navbar-button" href="{% url 'userprofile:messages' %}">Сообщения </a>
+        <a class="navbar-button" href="{% url 'userprofile:messages' %}">Сообщения
+            <svg id="hasNewMessages" width="32px" style="margin-bottom:-10px; display: none" height="32px"
+                 viewBox="0 0 16 16" class="bi bi-dot"
+                 fill="black"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+            </svg>
+        </a>
         <a class="navbar-button" href="{% url 'userprofile:settings' %}">Настройки </a>
         <a class="navbar-button" id="lastHref" href="{% url 'userprofile:logout' %}">Выход </a>
     </div>
@@ -92,6 +99,7 @@
 
     $(window).on('load', function () {
         makeCorrectFieldsSize();
+        hasNewMessages();
     });
 
     $(window).on('resize', function () {
@@ -110,7 +118,6 @@
     }
 
 </script>
-
 <script>
     $('a').on('mouseenter', function () {
         $(this).css('background', 'rgba(245, 245, 245, 1.0)')
@@ -119,6 +126,28 @@
     $('a').on('mouseleave', function () {
         $(this).css('background', 'rgba(245, 245, 245, 0.7)')
     })
+</script>
+<script>
+    function hasNewMessages() {
+        $.ajax({
+            type: "GET",
+            url: {% url 'userprofile:messages' %},
+            data: {
+                request_type: 'has_new_messages',
+            },
+            success: function (data) {
+                console.log(data);
+                console.log(typeof data);
+                if (data === 'True') {
+                    $('#hasNewMessages').css('display', 'inline');
+                }
+            },
+            error: function (data, errors) {
+                console.log(data);
+                console.log(errors);
+            }
+        })
+    }
 </script>
 {% block scripts %}
 

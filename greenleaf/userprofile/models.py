@@ -63,6 +63,7 @@ class Message(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)
+    viewed = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.owner) + ' ' + str(self.publication_date)

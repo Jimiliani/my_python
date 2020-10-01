@@ -34,7 +34,14 @@
         {% endif %}
         {% for profile in profiles %}
             <a id="{{ profile.id }}" class="dialog"
-               href="{% url 'userprofile:dialog' friend_id=profile.id %}">{{ profile.full_name }}</a>
+               href="{% url 'userprofile:dialog' friend_id=profile.id %}">{{ profile.full_name }}
+                {% if profile.new_messages %}
+                    <svg width="32px" style="margin-bottom:-10px" height="32px" viewBox="0 0 16 16" class="bi bi-dot" fill="black"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+                    </svg>
+                {% endif %}
+            </a>
         {% endfor %}
     </div>
 {% endblock %}

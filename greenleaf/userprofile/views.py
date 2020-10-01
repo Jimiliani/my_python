@@ -43,7 +43,6 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(User, id=kwargs.pop('user_id'))
         if request.GET and request.GET['request_type'] == 'get_extra_posts':
-            print('extra_posts')
             posts = ProfilePost.objects.filter(author=user.profile)[
                     int(request.GET['posts_from']):int(request.GET['posts_to'])]
             posts = [post.serialize_extra_posts(request.user.profile) for post in posts.all()]
@@ -136,8 +135,6 @@ class FriendsView(LoginRequiredMixin, View):
             profiles = Profile.objects.exclude(user=request.user)
         friends = []
         for profile in profiles:
-            print(request.user.profile.friends.all())
-            print(profile.friends.all())
             friends.append({'id': profile.user.id,
                             'full_name': profile.user.get_full_name(),
                             'profile_picture': profile.profile_picture.url,
@@ -185,15 +182,11 @@ def delete_friends(who_delete, whom_is_deleted):
 def are_friends(user, friend):
     try:
         friendship = Friendship.objects.get(friend1__user_id=min(user, friend), friend2__user_id=max(user, friend))
-        print('friendship found')
         if friendship.friend1.user.id == user and friendship.friend1_agree or \
                 friendship.friend2.user.id == user and friendship.friend2_agree:
-            print('true')
             return True
-        print('try false')
         return False
     except Friendship.DoesNotExist:
-        print('except false')
         return False
 
 
@@ -252,15 +245,24 @@ class MessagesView(LoginRequiredMixin, View):
     def get(self, request):
         friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
                                                 friend1_agree=True, friend2_agree=True)
+        if request.GET and request.GET['request_type'] == 'has_new_messages':
+            if Message.objects.exclude(owner_id=request.user.id).filter(dialog__in=friendships, viewed=False):
+                return HttpResponse(True)
         profiles = []
         for friendship in friendships:
             profile = ''
+            new_messages = False
             if friendship.friend1 == request.user.profile:
                 profile = friendship.friend2
+                if friendship.message_set.filter(owner_id=friendship.friend2.user.id, viewed=False):
+                    new_messages = True
             else:
                 profile = friendship.friend1
+                if friendship.message_set.filter(owner_id=friendship.friend1.user.id, viewed=False):
+                    new_messages = True
             profiles.append({'full_name': profile.user.get_full_name(),
-                             'id': profile.user.id})
+                             'id': profile.user.id,
+                             'new_messages': new_messages})
         args = {'profiles': profiles}
         return render(request, self.template_name, args)
 
@@ -279,6 +281,7 @@ class DialogView(LoginRequiredMixin, View):
         elif request.GET['request_type'] == 'get_messages':
             friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),
                                                 friend2=max(int(request.user.id), int(friend_id)))
+            friendship.message_set.filter(owner_id=friend_id).update(viewed=True)
             messages = Message.objects.filter(dialog=friendship)
             serialized_messages = []
             for message in messages:
