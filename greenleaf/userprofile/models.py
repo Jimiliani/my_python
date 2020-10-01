@@ -24,6 +24,45 @@ class Friendship(models.Model):
         return str(self.friend1) + ' ' + str(self.friend1_agree) + ' ' \
                + str(self.friend2) + ' ' + str(self.friend2_agree)
 
+    @staticmethod
+    def are_friends(user, friend):
+        try:
+            friendship = Friendship.objects.get(friend1__user_id=min(user, friend), friend2__user_id=max(user, friend))
+            if friendship.friend1.user.id == user and friendship.friend1_agree or \
+                    friendship.friend2.user.id == user and friendship.friend2_agree:
+                return True
+            return False
+        except Friendship.DoesNotExist:
+            return False
+
+    @staticmethod
+    def delete_friends(who_delete, whom_is_deleted):
+        friendship = Friendship.objects.get(
+            friend1__user_id=min(who_delete, whom_is_deleted),
+            friend2__user_id=max(who_delete, whom_is_deleted))
+        if who_delete < whom_is_deleted:
+            friendship.friend1_agree = False
+        else:
+            friendship.friend2_agree = False
+        friendship.save()
+
+    @staticmethod
+    def make_friends(who_adds, whom_is_added):
+        try:
+            friendship = Friendship.objects.get(
+                friend1__user_id=min(who_adds, whom_is_added),
+                friend2__user_id=max(who_adds, whom_is_added))
+            friendship.friend1_agree = True
+            friendship.friend2_agree = True
+            friendship.save()
+        except Friendship.DoesNotExist:
+            friend1 = User.objects.get(id=who_adds).profile
+            friend2 = User.objects.get(id=whom_is_added).profile
+            if who_adds < whom_is_added:
+                Friendship.objects.create(friend1=friend1, friend2=friend2, friend1_agree=True)
+            else:
+                Friendship.objects.create(friend1=friend2, friend2=friend1, friend2_agree=True)
+
 
 class ProfilePost(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='author')
@@ -37,7 +76,7 @@ class ProfilePost(models.Model):
     def serialize_extra_posts(self, user_profile):
         return {
             'id': self.id,
-            'post_text': self.post_text,
+            'text': self.post_text,
             'publication_date': self.publication_date,
             'is_liked_by_user': (user_profile in self.like.all()),
             'like_count': self.like.count(),
