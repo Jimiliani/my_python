@@ -1,0 +1,123 @@
+.profile-picture {
+    max-width: 32px;
+    max-height: 32px;
+    border: 1px solid black;
+    border-radius: 50%;
+}
+
+#mainContent {
+    display: flex;
+    flex-direction: row;
+    min-width: 400px;
+}
+
+#messagesAndPostForm {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+    width: 70%;
+}
+
+#dialogsNavbar {
+    display: flex;
+    flex-direction: column;
+}
+
+.messages {
+    background: rgba(245, 245, 245, 0.7);
+    border-radius: 15px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-end;
+    overflow-y: auto;
+    min-height: 500px;
+    max-height: 600px;
+}
+
+.message-container {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    background: rgba(245, 245, 245, 1);
+    border-radius: 25px;
+    margin: 10px 0;
+}
+
+.message-container img {
+    margin: 10px 5px;
+}
+
+.message-container p {
+    margin: 10px;
+    word-wrap: break-word;
+}
+
+.add-post-form {
+    margin: 10px 0;
+}
+
+.post-content-button {
+    width: 50%;
+    font-family: 'Pangolin', cursive;
+    font-size: 20px;
+    outline: none;
+    cursor: pointer;
+}
+
+.post-content-button svg {
+    margin: 0 5px -5px 5px;
+}
+
+.cancel-message-creation {
+    background: rgb(255, 40, 40);
+    border-radius: 0 0 0 25px;
+}
+
+.add-new-message {
+    background: rgb(40, 217, 27);
+    border-radius: 0 0 25px 0;
+}
+
+.post-buttons {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.post-content-text {
+    padding: 10px 20px 0 20px;
+    margin-bottom: -10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 25px 25px 0 0;
+    border: 2px solid black;
+    outline: none;
+    min-height: 50px;
+    overflow: hidden;
+    font-family: 'Pangolin', cursive;
+    font-size: 20px;
+}
+
+a {
+    background: rgba(245, 245, 245, 0.7);
+    text-decoration: none;
+    color: black;
+    padding: 10px 20px;
+    border-width: 1px 2px;
+    border-style: solid;
+    border-top-color: black;
+    font-family: 'Pangolin', cursive;
+    font-size: 20px;
+    cursor: pointer;
+    outline: none;
+}
+
+svg {
+    margin: 0 5px -5px 5px;
+}
+
+.active {
+    background: rgba(255, 255, 255, 1.0) !important;
+}

@@ -119,9 +119,7 @@
                 success: function (data) {
                     button.val(parseInt(button.val()) + 1);
                     let content = ""
-                    let date = "{% now 'N d, Y, P' %}";
                     for (let post of data.posts) {
-                        console.log(post)
                         content += "" +
                             "<div class=\"post\">\n" +
                             "                <textarea class=\"post-content-text\" readonly>\n" +
@@ -241,7 +239,7 @@
                         let content = "";
                         for (let comment of data['comments']) {
                             console.log(comment);
-                            content += "<p><b>" + comment['owner_full_name'] + ":</b> " + comment['text'] + "</p>";
+                            content += "<p><b>" + comment['owner_first_name'] + ' ' + comment['owner_last_name'] + ":</b> " + comment['text'] + "</p>";
                         }
                         content += "" +
                             "<div class=\"add-comment-form\">\n" +

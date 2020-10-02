@@ -54,7 +54,7 @@
                     },
                     dataType: 'json',
                     success: function (friends) {
-                        friendsProfiles = JSON.parse(friends)
+                        friendsProfiles = friends['friends']
                     },
                     error: function (data, errors) {
                         console.log(data);

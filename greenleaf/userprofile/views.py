@@ -3,7 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -40,26 +40,39 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
     form_class = PostCreationForm
     template_name = 'userprofile/userProfile.html'
 
-    def get(self, request, *args, **kwargs):
-        user = get_object_or_404(User, id=kwargs.pop('user_id'))
+    def get(self, request, user_id, *args, **kwargs):
+        user = get_object_or_404(User, id=user_id)
         if request.GET and request.GET['request_type'] == 'get_extra_posts':
-            posts = ProfilePost.objects.filter(author=user.profile)[
+            posts = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
                     int(request.GET['posts_from']):int(request.GET['posts_to'])]
             posts = [post.serialize_extra_posts(request.user.profile) for post in posts.all()]
-            print(posts)
-            return JsonResponse(data={'posts': posts})
+            # print(posts)
+            # posts2 = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
+            #          int(request.GET['posts_from']):int(request.GET['posts_to'])]
+            # print('\n')
+            # print('\n')
+            # print('\n')
+            # posts_with_users_likes = list(request.user.profile.like.all().values_list('id', flat=True))
+            # print(posts_with_users_likes)
+            # posts2 = posts2.annotate(
+            #     like_count=Count('like', distinct=True),
+            #     comment_count=Count('postcomment', distinct=True),
+            #     is_liked_by_user=Value(len(Q(id__in=posts_with_users_likes)),
+            #                            output_field=BooleanField())
+            # )
+            # posts2 = posts2.values('id', 'post_text', 'publication_date', 'is_liked_by_user', 'like_count',
+            #                        'comment_count')
+            # print(posts2)
+            return JsonResponse(data={'posts': posts}, status=200)
         if request.GET and request.GET['request_type'] == 'get_comments':
-            comments = []
-            for comment in PostComment.objects.filter(post=request.GET['post_id']).order_by('publication_date'):
-                comments.append({'owner_id': comment.owner.user.id,
-                                 'owner_full_name': comment.owner.user.get_full_name(),
-                                 'text': comment.text})
-            return JsonResponse(data={'comments': comments}, safe=False)
+            comments = PostComment.objects.all().filter(post=request.GET['post_id']). \
+                values('owner_id', 'text', owner_first_name=F('owner__user__first_name'),
+                       owner_last_name=F('owner__user__last_name')).order_by('publication_date')
+            return JsonResponse(data={'comments': list(comments)}, status=200)
         is_my_friend = Friendship.are_friends(user=request.user.id, friend=user.id)
         if request.GET and request.GET['request_type'] == 'are_friends':
-            return JsonResponse(data={'are_friends': is_my_friend})
-        user_profile = user.profile
-        posts = ProfilePost.objects.filter(author=user_profile)
+            return JsonResponse(data={'are_friends': is_my_friend}, status=200)
+        posts = ProfilePost.objects.filter(author=user.profile)
         too_many_posts = False
         if posts.count() > 10:
             too_many_posts = True
@@ -68,7 +81,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         form = self.form_class(request.POST)
 
         args = {'greenLeafUser': user,
-                'userProfile': user_profile,
+                'userProfile': user.profile,
                 'posts': posts,
                 'form': form,
                 'are_friends': is_my_friend,
@@ -86,7 +99,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             PostComment.objects.create(owner_id=request.user.id,
                                        text=request.POST['comment_text'],
                                        post_id=request.POST['post_id'])
-            return HttpResponse('success')
+            return HttpResponse('success', status=201)
         else:
             form = self.form_class(request.POST)
             if form.is_valid():
@@ -104,7 +117,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         elif body['request_type'] == 'remove_like':
             post.like.remove(request.user.profile)
         return JsonResponse(data={'is_liked': request.user.profile in post.like.all(),
-                                  'count_of_likes': post.like.count()})
+                                  'count_of_likes': post.like.count()}, status=201)
 
 
 class FriendsView(LoginRequiredMixin, View):
@@ -126,6 +139,7 @@ class FriendsView(LoginRequiredMixin, View):
             friendships = Friendship.objects.filter(
                 (Q(friend1=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False)) | (
                         Q(friend2=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True)))
+        list(friendships)
         profiles = []
         for friendship in friendships:
             if friendship.friend1 == request.user.profile:
@@ -140,16 +154,16 @@ class FriendsView(LoginRequiredMixin, View):
                             'full_name': profile.user.get_full_name(),
                             'profile_picture': profile.profile_picture.url,
                             'in_friends': Friendship.are_friends(request.user.id, profile.user.id)})
-        return JsonResponse(json.dumps(friends), safe=False)
+        return JsonResponse(data={'friends': friends}, safe=False, status=200)
 
     def post(self, request, *args, **kwargs):
         Friendship.make_friends(int(request.user.id), int(request.POST['friend_id']))
-        return HttpResponse('success')
+        return HttpResponse('success', status=201)
 
     def delete(self, request, *args, **kwargs):
         body = QueryDict(request.body)
         Friendship.delete_friends(int(request.user.id), int(body.get('friend_id')))
-        return HttpResponse('success')
+        return HttpResponse('success', status=204)
 
 
 class RegisterView(View):
@@ -163,11 +177,11 @@ class RegisterView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(username=form.cleaned_data['username'],
-                                            email=form.cleaned_data['email'],
-                                            password=form.cleaned_data['password1'],
-                                            first_name=form.cleaned_data['first_name'],
-                                            last_name=form.cleaned_data['last_name'])
+            User.objects.create_user(username=form.cleaned_data['username'],
+                                     email=form.cleaned_data['email'],
+                                     password=form.cleaned_data['password1'],
+                                     first_name=form.cleaned_data['first_name'],
+                                     last_name=form.cleaned_data['last_name'])
             return redirect('userprofile:login')
 
         return render(request, self.template_name, {'form': form})
@@ -179,7 +193,7 @@ class SettingsView(LoginRequiredMixin, View):
     template_name = 'userprofile/settings.html'
 
     def get(self, request, *args, **kwargs):
-        user_profile = get_object_or_404(Profile, user=request.user)
+        user_profile = request.user.profile
         form = self.form_class(request.POST, instance=user_profile, initial={'city': user_profile.city,
                                                                              'phone': user_profile.phone})
         return render(request, self.template_name, {'form': form,
@@ -194,7 +208,8 @@ class SettingsView(LoginRequiredMixin, View):
             if form.cleaned_data['phone']:
                 user_profile.phone = form.cleaned_data['phone']
             if form.cleaned_data['profile_picture']:
-                user_profile.profile_picture = request.FILES['profile_picture']
+                if request.FILES:
+                    user_profile.profile_picture = request.FILES['profile_picture']
             user_profile.save()
             return redirect('/user/' + str(request.user.id))
         return render(request, self.template_name, {'form': form,
@@ -209,11 +224,10 @@ class MessagesView(LoginRequiredMixin, View):
         friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
                                                 friend1_agree=True, friend2_agree=True)
         if request.GET and request.GET['request_type'] == 'has_new_messages':
-            if Message.objects.exclude(owner_id=request.user.id).filter(dialog__in=friendships, viewed=False):
+            if Message.objects.filter(dialog__in=friendships, viewed=False).exclude(owner_id=request.user.id):
                 return HttpResponse(True)
         profiles = []
         for friendship in friendships:
-            profile = ''
             new_messages = False
             if friendship.friend1 == request.user.profile:
                 profile = friendship.friend2
@@ -245,7 +259,7 @@ class DialogView(LoginRequiredMixin, View):
             friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),
                                                 friend2=max(int(request.user.id), int(friend_id)))
             friendship.message_set.filter(owner_id=friend_id).update(viewed=True)
-            messages = Message.objects.filter(dialog=friendship)
+            messages = Message.objects.filter(dialog=friendship).order_by('publication_date')
             serialized_messages = []
             for message in messages:
                 serialized_messages.append({'id': message.owner_id,
