@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
 
 class Profile(models.Model):
@@ -26,13 +27,10 @@ class Friendship(models.Model):
 
     @staticmethod
     def are_friends(user, friend):
-        try:
-            friendship = Friendship.objects.get(friend1__user_id=min(user, friend), friend2__user_id=max(user, friend))
-            if friendship.friend1.user.id == user and friendship.friend1_agree or \
-                    friendship.friend2.user.id == user and friendship.friend2_agree:
-                return True
-            return False
-        except Friendship.DoesNotExist:
+        if Friendship.objects.filter(Q(friend1=user) & Q(friend2=friend) & Q(friend1_agree=True) |
+                                     Q(friend1=friend) & Q(friend2=user) & Q(friend2_agree=True)).exists():
+            return True
+        else:
             return False
 
     @staticmethod

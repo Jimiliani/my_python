@@ -3,7 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.db.models import Q, F
+from django.db.models import Q, F, Count, BooleanField, Value
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -41,11 +41,12 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
     template_name = 'userprofile/userProfile.html'
 
     def get(self, request, user_id, *args, **kwargs):
-        user = get_object_or_404(User, id=user_id)
+        user = User.objects.filter(id=user_id).select_related('profile')[0]
+        request_user = User.objects.filter(id=request.user.id).select_related('profile')[0]
         if request.GET and request.GET['request_type'] == 'get_extra_posts':
             posts = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
                     int(request.GET['posts_from']):int(request.GET['posts_to'])]
-            posts = [post.serialize_extra_posts(request.user.profile) for post in posts.all()]
+            posts = [post.serialize_extra_posts(request_user.profile) for post in posts.all()]
             # print(posts)
             # posts2 = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
             #          int(request.GET['posts_from']):int(request.GET['posts_to'])]
@@ -69,15 +70,18 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                 values('owner_id', 'text', owner_first_name=F('owner__user__first_name'),
                        owner_last_name=F('owner__user__last_name')).order_by('publication_date')
             return JsonResponse(data={'comments': list(comments)}, status=200)
-        is_my_friend = Friendship.are_friends(user=request.user.id, friend=user.id)
+        is_my_friend = Friendship.are_friends(user=request_user.id, friend=user.id)
         if request.GET and request.GET['request_type'] == 'are_friends':
             return JsonResponse(data={'are_friends': is_my_friend}, status=200)
-        posts = ProfilePost.objects.filter(author=user.profile)
+        posts = ProfilePost.objects.filter(author=user.profile).prefetch_related('like').annotate(
+            like_count=Count('like'),
+            comment_count=Count('postcomment')
+        )
         too_many_posts = False
         if posts.count() > 10:
             too_many_posts = True
         posts = posts[:10]
-
+        list(posts)
         form = self.form_class(request.POST)
 
         args = {'greenLeafUser': user,
@@ -111,7 +115,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
 
     def patch(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
-        post = get_object_or_404(ProfilePost, id=body['post_id'])
+        post = get_object_or_404(ProfilePost, id=body.get('post_id'))
         if body['request_type'] == 'add_like':
             post.like.add(request.user.profile)
         elif body['request_type'] == 'remove_like':
@@ -129,29 +133,46 @@ class FriendsView(LoginRequiredMixin, View):
             return render(request, self.template_name)
         friendships = ''
         if request.GET['request_type'] == 'myFriends':
-            friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
-                                                    friend1_agree=True, friend2_agree=True)
+            friendships = Friendship.objects.select_related('friend1', 'friend2').filter(
+                Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
+                friend1_agree=True, friend2_agree=True).only('friend1__user_id', 'friend2__user_id',
+                                                             'friend1__profile_picture', 'friend2__profile_picture',
+                                                             'friend1__user__first_name', 'friend1__user__last_name',
+                                                             'friend2__user__first_name', 'friend2__user__last_name')
         elif request.GET['request_type'] == 'incomingRequests':
-            friendships = Friendship.objects.filter(
+            friendships = Friendship.objects.select_related('friend1', 'friend2').filter(
                 (Q(friend1=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True)) | (
-                        Q(friend2=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False)))
+                        Q(friend2=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False))).only(
+                'friend1__user_id', 'friend2__user_id',
+                'friend1__profile_picture', 'friend2__profile_picture',
+                'friend1__user__first_name', 'friend1__user__last_name',
+                'friend2__user__first_name', 'friend2__user__last_name')
         elif request.GET['request_type'] == 'outgoingRequests':
-            friendships = Friendship.objects.filter(
+            friendships = Friendship.objects.select_related('friend1', 'friend2').filter(
                 (Q(friend1=request.user.profile) & Q(friend1_agree=True) & Q(friend2_agree=False)) | (
-                        Q(friend2=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True)))
+                        Q(friend2=request.user.profile) & Q(friend1_agree=False) & Q(friend2_agree=True))).only(
+                'friend1__user_id', 'friend2__user_id',
+                'friend1__profile_picture', 'friend2__profile_picture',
+                'friend1__user__first_name', 'friend1__user__last_name',
+                'friend2__user__first_name', 'friend2__user__last_name')
         list(friendships)
-        profiles = []
-        for friendship in friendships:
-            if friendship.friend1 == request.user.profile:
-                profiles.append(friendship.friend2)
-            else:
-                profiles.append(friendship.friend1)
         if request.GET['request_type'] == 'allUsers':
-            profiles = Profile.objects.exclude(user=request.user)
+            profiles = Profile.objects.exclude(user=request.user).select_related('user'). \
+                only('user__last_name', 'user__first_name', 'profile_picture', 'user_id')
+        else:
+            profiles = []
+            for friendship in friendships:
+                if friendship.friend1_id == request.user.id:
+                    profiles.append(friendship.friend2_id)
+                else:
+                    profiles.append(friendship.friend1_id)
+            profiles = Profile.objects.filter(user_id__in=profiles).select_related('user'). \
+                only('user__last_name', 'user__first_name', 'profile_picture', 'user_id')
+        list(profiles)
         friends = []
         for profile in profiles:
             friends.append({'id': profile.user.id,
-                            'full_name': profile.user.get_full_name(),
+                            'full_name': profile.user.first_name + ' ' + profile.user.last_name,
                             'profile_picture': profile.profile_picture.url,
                             'in_friends': Friendship.are_friends(request.user.id, profile.user.id)})
         return JsonResponse(data={'friends': friends}, safe=False, status=200)
@@ -221,11 +242,15 @@ class MessagesView(LoginRequiredMixin, View):
     template_name = 'userprofile/messages.html'
 
     def get(self, request):
-        friendships = Friendship.objects.filter(Q(friend1=request.user.profile) | Q(friend2=request.user.profile),
+        friendships = Friendship.objects.filter(Q(friend1=request.user.id) | Q(friend2=request.user.id),
                                                 friend1_agree=True, friend2_agree=True)
         if request.GET and request.GET['request_type'] == 'has_new_messages':
-            if Message.objects.filter(dialog__in=friendships, viewed=False).exclude(owner_id=request.user.id):
+            if Message.objects.filter(dialog__in=friendships.values_list('id', flat=True), viewed=False).exclude(
+                    owner_id=request.user.id).exists():
                 return HttpResponse(True)
+            else:
+                return HttpResponse(False)
+        user_profile = request.user.profile
         profiles = []
         for friendship in friendships:
             new_messages = False
