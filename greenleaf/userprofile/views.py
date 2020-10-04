@@ -3,6 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.postgres.aggregates import BoolOr
 from django.db.models import Q, F, Count, BooleanField, Value, Case, When
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
@@ -44,17 +45,14 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         user = User.objects.filter(id=user_id).select_related('profile')[0]
         request_user = User.objects.filter(id=request.user.id).select_related('profile')[0]
         if request.GET and request.GET['request_type'] == 'get_extra_posts':
-            posts = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
-                    int(request.GET['posts_from']):int(request.GET['posts_to'])]
-            posts = [post.serialize_extra_posts(request_user.profile) for post in posts.all()]
-            posts2 = ProfilePost.objects.filter(author=user.profile).annotate(
+            posts = ProfilePost.objects.filter(author=user.profile).annotate(
                 like_count=Count('like', distinct=True),
                 comment_count=Count('comments', distinct=True),
-                is_liked_by_user=Case(
+                is_liked_by_user=BoolOr(Case(
                     When(Q(like__user_id=request_user.id), then=Value(True)),
                     default=Value(False),
                     output_field=BooleanField(),
-                ),
+                )),
             ).values(
                 'id',
                 'post_text',
@@ -62,30 +60,8 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
                 'is_liked_by_user',
                 'like_count',
                 'comment_count',
-            ).order_by('-publication_date')[int(request.GET['posts_from']):int(request.GET['posts_to'])]
-            print(posts)
-            print('\n')
-            print('\n')
-            print('\n')
-            print(posts2)
-            # print(posts)
-            # posts2 = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
-            #          int(request.GET['posts_from']):int(request.GET['posts_to'])]
-            # print('\n')
-            # print('\n')
-            # print('\n')
-            # posts_with_users_likes = list(request.user.profile.like.all().values_list('id', flat=True))
-            # print(posts_with_users_likes)
-            # posts2 = posts2.annotate(
-            #     like_count=Count('like', distinct=True),
-            #     comment_count=Count('postcomment', distinct=True),
-            #     is_liked_by_user=Value(len(Q(id__in=posts_with_users_likes)),
-            #                            output_field=BooleanField())
-            # )
-            # posts2 = posts2.values('id', 'post_text', 'publication_date', 'is_liked_by_user', 'like_count',
-            #                        'comment_count')
-            # print(posts2)
-            return JsonResponse(data={'posts': posts}, status=200)
+            ).order_by('-publication_date')[int(request.GET['posts_from']): int(request.GET['posts_to'])]
+            return JsonResponse(data={'posts': list(posts)}, status=200)
         if request.GET and request.GET['request_type'] == 'get_comments':
             comments = PostComment.objects.filter(post_id=request.GET['post_id']). \
                 values('owner_id', 'text', owner_first_name=F('owner__user__first_name'),
@@ -95,8 +71,8 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
         if request.GET and request.GET['request_type'] == 'are_friends':
             return JsonResponse(data={'are_friends': is_my_friend}, status=200)
         posts = ProfilePost.objects.filter(author=user.profile).prefetch_related('like').annotate(
-            like_count=Count('like'),
-            comment_count=Count('comments')
+            like_count=Count('like', distinct=True),
+            comment_count=Count('comments', distinct=True)[:10]
         ).order_by('-publication_date')
         too_many_posts = False
         if posts.count() > 10:
