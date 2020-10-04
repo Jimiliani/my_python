@@ -63,10 +63,10 @@ class Friendship(models.Model):
 
 
 class ProfilePost(models.Model):
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='author')
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='posts')
     post_text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)
-    like = models.ManyToManyField(Profile, related_name='like')
+    like = models.ManyToManyField(Profile, related_name='likes')
 
     class Meta:
         ordering = ['-publication_date']
@@ -78,7 +78,7 @@ class ProfilePost(models.Model):
             'publication_date': self.publication_date,
             'is_liked_by_user': (user_profile in self.like.all()),
             'like_count': self.like.count(),
-            'comment_count': self.postcomment_set.count()
+            'comment_count': self.comments.count()
         }
 
     def __str__(self):
@@ -86,8 +86,8 @@ class ProfilePost(models.Model):
 
 
 class PostComment(models.Model):
-    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE)
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE, related_name='comments')
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(max_length=5000)
     publication_date = models.DateTimeField(auto_now_add=True)
 
@@ -96,8 +96,8 @@ class PostComment(models.Model):
 
 
 class Message(models.Model):
-    dialog = models.ForeignKey(Friendship, on_delete=models.CASCADE)
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    dialog = models.ForeignKey(Friendship, on_delete=models.CASCADE, related_name='messages')
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages')
     text = models.TextField(max_length=10000)
     publication_date = models.DateTimeField(auto_now_add=True)
     viewed = models.BooleanField(default=False)

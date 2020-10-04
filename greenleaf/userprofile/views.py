@@ -3,7 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.db.models import Q, F, Count, BooleanField, Value
+from django.db.models import Q, F, Count, BooleanField, Value, Case, When
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -15,12 +15,12 @@ from .forms import GreenLeafUserCreationForm, GreenLeafUserProfileChangeForm, Po
 
 
 @login_required(login_url='/login/')
-def logoutView(request):
+def logout_view(request):
     logout(request)
     return redirect('/login')
 
 
-def loginView(request):
+def login_view(request):
     args = {}
     if request.user.is_authenticated:
         return redirect('/user/' + str(request.user.id))
@@ -47,6 +47,27 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             posts = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
                     int(request.GET['posts_from']):int(request.GET['posts_to'])]
             posts = [post.serialize_extra_posts(request_user.profile) for post in posts.all()]
+            posts2 = ProfilePost.objects.filter(author=user.profile).annotate(
+                like_count=Count('like', distinct=True),
+                comment_count=Count('comments', distinct=True),
+                is_liked_by_user=Case(
+                    When(Q(like__user_id=request_user.id), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            ).values(
+                'id',
+                'post_text',
+                'publication_date',
+                'is_liked_by_user',
+                'like_count',
+                'comment_count',
+            ).order_by('-publication_date')[int(request.GET['posts_from']):int(request.GET['posts_to'])]
+            print(posts)
+            print('\n')
+            print('\n')
+            print('\n')
+            print(posts2)
             # print(posts)
             # posts2 = ProfilePost.objects.filter(author=user.profile).order_by('-publication_date')[
             #          int(request.GET['posts_from']):int(request.GET['posts_to'])]
@@ -66,7 +87,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             # print(posts2)
             return JsonResponse(data={'posts': posts}, status=200)
         if request.GET and request.GET['request_type'] == 'get_comments':
-            comments = PostComment.objects.all().filter(post=request.GET['post_id']). \
+            comments = PostComment.objects.filter(post_id=request.GET['post_id']). \
                 values('owner_id', 'text', owner_first_name=F('owner__user__first_name'),
                        owner_last_name=F('owner__user__last_name')).order_by('publication_date')
             return JsonResponse(data={'comments': list(comments)}, status=200)
@@ -75,8 +96,8 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             return JsonResponse(data={'are_friends': is_my_friend}, status=200)
         posts = ProfilePost.objects.filter(author=user.profile).prefetch_related('like').annotate(
             like_count=Count('like'),
-            comment_count=Count('postcomment')
-        )
+            comment_count=Count('comments')
+        ).order_by('-publication_date')
         too_many_posts = False
         if posts.count() > 10:
             too_many_posts = True
@@ -251,20 +272,29 @@ class MessagesView(LoginRequiredMixin, View):
             else:
                 return HttpResponse(False)
         user_profile = request.user.profile
-        profiles = []
-        for friendship in friendships:
-            new_messages = False
-            if friendship.friend1 == request.user.profile:
-                profile = friendship.friend2
-                if friendship.message_set.filter(owner_id=friendship.friend2.user.id, viewed=False):
-                    new_messages = True
-            else:
-                profile = friendship.friend1
-                if friendship.message_set.filter(owner_id=friendship.friend1.user.id, viewed=False):
-                    new_messages = True
-            profiles.append({'full_name': profile.user.get_full_name(),
-                             'id': profile.user.id,
-                             'new_messages': new_messages})
+        friendships_where_user_is_friend1 = friendships.filter(friend1=user_profile).select_related('friend2__user'). \
+            prefetch_related('messages').annotate(
+            friend_id=F('friend2_id'),
+            first_name=F('friend2__user__first_name'),
+            last_name=F('friend2__user__last_name'),
+            new_messages=Case(
+                When(Q(messages__viewed=False) & Q(messages__owner_id=F('friend2_id')), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+        ).values('friend_id', 'first_name', 'last_name', 'new_messages').distinct()
+        friendships_where_user_is_friend2 = friendships.filter(friend2=user_profile).select_related('friend1__user'). \
+            prefetch_related('messages').annotate(
+            friend_id=F('friend1_id'),
+            first_name=F('friend1__user__first_name'),
+            last_name=F('friend1__user__last_name'),
+            new_messages=Case(
+                When(Q(messages__viewed=False) & Q(messages__owner_id=F('friend1_id')), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+        ).values('friend_id', 'first_name', 'last_name', 'new_messages').distinct()
+        profiles = (friendships_where_user_is_friend1 | friendships_where_user_is_friend2)
         args = {'profiles': profiles}
         return render(request, self.template_name, args)
 
@@ -275,7 +305,7 @@ class DialogView(LoginRequiredMixin, View):
 
     def get(self, request, friend_id):
         if 'request_type' not in request.GET:
-            user = User.objects.get(id=friend_id)
+            user = User.objects.select_related('profile').get(id=friend_id)
             args = {'friend_profile_picture_url': user.profile.profile_picture.url,
                     'friend_full_name': user.get_full_name(),
                     'friend_id': friend_id}
@@ -283,14 +313,11 @@ class DialogView(LoginRequiredMixin, View):
         elif request.GET['request_type'] == 'get_messages':
             friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),
                                                 friend2=max(int(request.user.id), int(friend_id)))
-            friendship.message_set.filter(owner_id=friend_id).update(viewed=True)
-            messages = Message.objects.filter(dialog=friendship).order_by('publication_date')
-            serialized_messages = []
-            for message in messages:
-                serialized_messages.append({'id': message.owner_id,
-                                            'text': message.text,
-                                            'pub_date': message.publication_date})
-            return JsonResponse(data={'messages': serialized_messages})
+            friendship.messages.filter(owner_id=friend_id).update(viewed=True)
+            messages = friendship.messages.order_by('publication_date').values(
+                'owner_id', 'text', 'publication_date')
+            print(messages)
+            return JsonResponse(data={'messages': list(messages)})
 
     def post(self, request, friend_id):
         friendship = Friendship.objects.get(friend1=min(int(request.user.id), int(friend_id)),

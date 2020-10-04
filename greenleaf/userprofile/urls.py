@@ -4,8 +4,8 @@ from .views import *
 app_name = 'userprofile'
 
 urlpatterns = [
-    path('logout/', logoutView, name='logout'),
-    path('login/', loginView, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('login/', login_view, name='login'),
     path('settings/', SettingsView.as_view(), name='settings'),
     path('register/', RegisterView.as_view(), name='register'),
     path('user/<str:user_id>', ProfileViewWithPk.as_view(), name='profile'),

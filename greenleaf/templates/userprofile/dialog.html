@@ -45,18 +45,6 @@
                 $.ajax({
                     type: "GET",
                     url: window.location.href,
-                    success: function () {
-                        console.log();
-                    },
-                    error: function (data, errors) {
-                        console.log('error');
-                        console.log(data);
-                        console.log(errors);
-                    }
-                }),
-                $.ajax({
-                    type: "GET",
-                    url: window.location.href,
                     dataType: 'json',
                     data: {
                         request_type: 'get_messages',
@@ -72,8 +60,8 @@
                     }
                 })).then(function () {
                 for (let message of messages) {
-                    console.log(message['id']);
-                    if (message['id'] === {{ user.id }}) {
+                    console.log(message['owner_id']);
+                    if (message['owner_id'] === {{ user.id }}) {
                         content += "" +
                             "<div class='message-container'>" +
                             "   <img class='profile-picture' src='{{ user.profile.profile_picture.url }}'>" +

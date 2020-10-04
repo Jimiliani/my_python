@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.forms.widgets import Input
 from django.utils.translation import gettext_lazy as _
 
-from userprofile.models import Profile, Message, ProfilePost
+from userprofile.models import Profile, ProfilePost
 
 
 class GreenLeafUserCreationForm(UserCreationForm):
@@ -45,4 +45,3 @@ class PostCreationForm(forms.ModelForm):
     class Meta:
         fields = ('post_text',)
         model = ProfilePost
-
