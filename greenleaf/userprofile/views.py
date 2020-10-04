@@ -72,7 +72,7 @@ class ProfileViewWithPk(LoginRequiredMixin, View):
             return JsonResponse(data={'are_friends': is_my_friend}, status=200)
         posts = ProfilePost.objects.filter(author=user.profile).prefetch_related('like').annotate(
             like_count=Count('like', distinct=True),
-            comment_count=Count('comments', distinct=True)[:10]
+            comment_count=Count('comments', distinct=True)
         ).order_by('-publication_date')
         too_many_posts = False
         if posts.count() > 10:
