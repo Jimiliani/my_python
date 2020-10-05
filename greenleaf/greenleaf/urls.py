@@ -21,10 +21,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-                  path('admin/', admin.site.urls),
-                  path('', include('userprofile.urls')),
-                  path('__debug__/', include(debug_toolbar.urls))
-              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
-              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('admin/', admin.site.urls),
+    path('', include('userprofile.urls')),
+    path('__debug__/', include(debug_toolbar.urls))
+]
 
-urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
