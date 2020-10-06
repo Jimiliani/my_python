@@ -1,9 +1,11 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.postgres.aggregates import BoolOr
+from django.contrib.auth.views import PasswordResetDoneView
 from django.db.models import Q, F, Count, BooleanField, Value, Case, When
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import render, redirect, get_object_or_404
@@ -39,10 +41,13 @@ def login_view(request):
 class ProfileViewWithPk(LoginRequiredMixin, View):
     login_url = '/login/'
     form_class = PostCreationForm
-    template_name = 'userprofile/userProfile.html'
+    template_name = 'userprofile/user_profile.html'
 
     def get(self, request, user_id, *args, **kwargs):
-        user = User.objects.filter(id=user_id).select_related('profile')[0]
+        try:
+            user = User.objects.filter(id=user_id).select_related('profile')[0]
+        except IndexError:
+            return redirect('userprofile:login')
         request_user = User.objects.filter(id=request.user.id).select_related('profile')[0]
         if request.GET and request.GET['request_type'] == 'get_extra_posts':
             posts = ProfilePost.objects.filter(author=user.profile).annotate(
