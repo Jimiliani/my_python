@@ -71,16 +71,6 @@ class ProfilePost(models.Model):
     class Meta:
         ordering = ['-publication_date']
 
-    def serialize_extra_posts(self, user_profile):
-        return {
-            'id': self.id,
-            'text': self.post_text,
-            'publication_date': self.publication_date,
-            'is_liked_by_user': (user_profile in self.like.all()),
-            'like_count': self.like.count(),
-            'comment_count': self.comments.count()
-        }
-
     def __str__(self):
         return str(self.author) + ' ' + str(self.publication_date)
 
