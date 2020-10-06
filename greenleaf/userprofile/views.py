@@ -275,7 +275,7 @@ class MessagesView(LoginRequiredMixin, View):
                 output_field=BooleanField(),
             ),
         ).values('friend_id', 'first_name', 'last_name', 'new_messages').distinct()
-        profiles = (friendships_where_user_is_friend1 | friendships_where_user_is_friend2)
+        profiles = list(friendships_where_user_is_friend1) + list(friendships_where_user_is_friend2)
         args = {'profiles': profiles}
         return render(request, self.template_name, args)
 
